@@ -1,9 +1,10 @@
 # prettyprint
 A New (2023) SML/NJ Prettyprint library.
 
-The new pretty printer library for SML/NJ. This is a two-phase pretty printer
-where a value to be prettyprinted is first mapped to a _format_, which is then
-_rendered_ to printed text (or, potentially, to some "layout" type, such as string).
+This repository contains implementation files and documentation for new pretty printer
+library for SML/NJ. This is a two-phase pretty printer where a value to be prettyprinted
+is first mapped to a _format_, which is then _rendered_ to printed text (or, potentially,
+to some "layout" type, such as string).
 
 This new prettyprinter is intended to be installed in smlnj-lib as an
 alternative to the earlier PP prettyprint library, which is derived
@@ -51,13 +52,13 @@ The PrettyPrint library is found in smlnj-lib/PRETTYPRINT.
 
 ## Documentation
 
-The following files are located in $SMLNJ/doc/src/smlnj-lib/src/PrettyPrint.
-[This documentation is currently not updated for Version 9.1.]
+The following files are located in the doc directory:
+[This documentation is currently for Version 8.5. It needs to be
+updated for Version 10.0]
 
-- str-PrettyPrint.{adoc, html}, the interface documentation
+- doc/str-PrettyPrint.{adoc, html}, the interface documentation
 
-- prettyprint-manual.{adoc, html}, the manual for the prettyprinter library
+- doc/prettyprint-manual.{adoc, html}, the manual for the prettyprinter library
 
-- design-notes.txt, extensive notes on the design of PrettyPrint and
-  prettyprinter library design in general (from the github/newpptr repo).
-
+A tech report with deeper documentation of the design and history is
+being prepared and should be available by early September, 2023.
