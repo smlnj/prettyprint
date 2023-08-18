@@ -222,4 +222,9 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
     prettyprint-term.cm: Render = RenderFn (ANSITermDevice)
 	prettyprint-html.cm: Render defined in html/render.sml
 
-**Version 10.0**
+
+**Version 10.0 (2023.8)**
+
+- Simplified styles (styles are represented by strings).
+- Plain text rendering (plain text device) does not support styles.
+- Separate render module for producing HTML 3.0.

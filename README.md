@@ -1,6 +1,5 @@
 # prettyprint
-New SML/NJ Prettyprint library.
-# README for PrettyPrint, the New Prettyprinter Library
+A New (2023) SML/NJ Prettyprint library.
 
 The new pretty printer library for SML/NJ. This is a two-phase pretty printer
 where a value to be prettyprinted is first mapped to a _format_, which is then
@@ -47,6 +46,8 @@ The PrettyPrint library is found in smlnj-lib/PRETTYPRINT.
 
 - prettyprint-lib.cm, the CM file for compiling the prettyprinter,
   referring to src/prettyprint.cm.
+
+- CHANGELOG.md, the change log for the new prettyprint library.
 
 ## Documentation
 
