@@ -2,9 +2,13 @@
 New SML/NJ Prettyprint library.
 # README for PrettyPrint, the New Prettyprinter Library
 
-The implementation of the new pretty printer. This is a two-phase pretty printer
+The new pretty printer library for SML/NJ. This is a two-phase pretty printer
 where a value to be prettyprinted is first mapped to a _format_, which is then
 _rendered_ to printed text (or sometimes, to a "layout" type, such as string).
+
+This new prettyprinter is intended to be installed in smlnj-lib as an
+alternative to the earlier PP prettyprint library, which is derived
+from the OCaml Format package.
 
 ## Features
 
