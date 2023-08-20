@@ -227,4 +227,17 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
 
 - Simplified styles (styles are represented by strings).
 - Plain text rendering (plain text device) does not support styles.
-- Separate render module for producing HTML 3.0.
+- Generic render function takes a device argument
+  -- device is responsible for "implementing" styles
+- Specialized render module for producing HTML 3.0.
+
+Modified:
+  src/default/style.sml --> src/style.sml  (type style = string)
+
+Added:
+  src/ansiterm-style.sml  -- interpretation of style strings for ANSITerm
+  src/html-style.sml      -- interpretation of style strings for HTML 3
+
+Removed:
+  src/default 
+  src/term
