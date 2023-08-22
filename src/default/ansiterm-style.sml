@@ -1,7 +1,8 @@
 (* prettyprint/src/ansiterm-style.sml *)
 
-(* formatting styles for an ANSITerm device; interpreting style strings as ANSITerm
- * styles *)
+(* formatting styles for an ANSITerm device;
+ *  interpreting style strings as ANSITerm styles
+ *)
 
 structure ANSITermStyle =
 struct

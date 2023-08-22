@@ -7,6 +7,7 @@ structure HTMLStyle =
 struct
 
 local  (* imported structures *)
+
   structure S = Style
 
 in
@@ -18,9 +19,6 @@ datatype htmlStyle
   | VAR | CITE
   | COLOR of string (* the names of colors as spacified for HTML 3.2 *)
   | A of string (* the href URL string *)
-
-(* other : S.style -> htmlStyle *)
-fun other (s : S.style) =
 
 (* styleToHtmlStyle : S.style -> htmlStyle *)
 fun styleToHtmlStyle (s: S.style) =
