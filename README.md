@@ -18,19 +18,22 @@ from the OCaml Format package.
 
 - _basic_ and _aligned_ blocks as compound formats
 
-- **FLAT** format constructor (replaces **TRYFLAT** constructor from earlier versions)
+- **FLAT** format constructor, a format _modifier_ that causes a
+  format to be rendered without line breaks.
 
-- _indented_ formats
-  Indentation is a format modifier and is not associated with line breaks.
+- _indented_ formats, another format _modifier_.
   Indentation affects the complete content of a format.
   Indentation is conditional: it is activated for an indented format if and only if the
   format begins on a fresh line (immediately following that line's indentation).
 
-- styles for ANSI terminal output and for rendering to HTML 3 (smlnj-lib/HTML).
+- styles (format modifier).
+  Generic styles are just strings, which have to be interpreted to
+  impose styles for a given output target.
+  Output targets supporting styles are ANSI terminals and rendering to HTML 3 (smlnj-lib/HTML).
 
 ## Files
 
-The PrettyPrint library is found in smlnj-lib/PRETTYPRINT.
+The PrettyPrint library is found in the prettyprint/src directory:
 
 - src/format.sml, the datatypes defining formats
 
@@ -53,12 +56,14 @@ The PrettyPrint library is found in smlnj-lib/PRETTYPRINT.
 ## Documentation
 
 The following files are located in the doc directory:
-[This documentation is currently for Version 8.5. It needs to be
-updated for Version 10.0]
+[This documentation is currently for Version 8.5, and needs to be
+updated for Version 10.0.]
 
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
 
 - doc/prettyprint-manual.{adoc, html}, the manual for the prettyprinter library
 
-A tech report with deeper documentation of the design and history is
-being prepared and should be available by early September, 2023.
+A tech report with deeper documentation of the design and its
+background being prepared and should be available by early September,
+2023.
+

@@ -2,9 +2,9 @@
 
 (* Version 10.0 *)
 
-(* strings with explicit widths, where it is assumed that the width of the string,
+(* strings with explicit widths, where the width of the string,
  * as printed, may be different from the number of characters in the string
- * (i.e. the size of the string), e.g. because of ETF8 encodings.
+ * (i.e. the size of the string), e.g. because of UTF8 encodings.
  *)
 
 structure Token =
