@@ -13,6 +13,8 @@
    -- merge HINDENT, SINDENT into single INDENT constructor acting like SINDENT
  * Version 8.4
    -- simply names of Break constructors (Hard, Soft, Null)
+ * Version 10.0
+   -- added treatment of TOKEN as an additional atomic format
  *)
 
 structure Measure : MEASURE =
@@ -42,7 +44,9 @@ fun measure (format: F.format) =
     case format
       of F.EMPTY => 0
        | F.TEXT s => size s
-         (* atomic formats *)
+         (* atomic TEXT formats *)
+       | F.TOKEN t => Token.size t
+         (* atomic TOKEN formats *)
        | F.BLOCK {measure, ...} => measure
          (* basic blocks *)
        | F.ABLOCK {measure, ...} => measure
@@ -56,7 +60,7 @@ fun measure (format: F.format) =
 
 fun measureElement (F.BRK break) =
     (case break
-      of F.Hard => 1
+      of F.Hard => 1 (* a flattened hard line break translates to one space *)
        | (F.Soft n | F.Space n) => n  (* measured as n spaces, since flat rendered as n spaces *)
        | F.Null => 0)
   | measureElement (F.FMT format) = measure format
