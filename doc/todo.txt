@@ -1,0 +1,10 @@
+* Add discussion of tokens, and TOKEN constructor for formats
+  UTF8 unicode compatibility with monospaced (fixed-width) fonts.
+
+* Add discussion of styles and devices, and special case of
+  rendering to (another) markup language like HTML 3.
+  -- two models for styles (ANSI terminal styles, HTML styles)
+
+* Formatting and PrintFormat structures (replacing PrettyPrint)
+
+

@@ -1,0 +1,28 @@
+(* smlnj-libl/Dev/PrettyPrint/src91/prettyprint.cm *)
+(* CM Description File for the PrettyPrinter Library
+ * Default version *)
+
+Library
+
+  structure Style
+  structure Formatting
+  structure PrintFormat    
+
+is
+
+$smlnj/basis/basis.cm
+
+style.sml            (* Style: generic version, style = string *)
+token.sml            (* "tokens" *)
+format.sml           (* Format *)
+measure.sig          (* MEASURE *)
+measure.sml          (* Measure *)
+device.sig           (* DEVICE *)
+render.sig           (* RENDER *)
+render-fct.sml       (* RenderFn *)
+plain-device-fct.sml (* PlainDeviceFn *)
+plain-device.sml     (* PlainDevice (outstream = stdOut) *)
+plain-render.sml     (* Render = RenderFn (PlainDevice) *)
+formatting.sig       (* FORMATTING *)
+formatting.sml       (* Formatting *)
+printformat.sml      (* PrintFormat *)

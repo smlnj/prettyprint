@@ -1,0 +1,24 @@
+(* prettyprint/src/prettyprint-html.cm *)
+(* CM Description File for the PrettyPrinter Library
+ * HTML 3 rendering version *)
+
+Library
+
+  structure Style
+  structure Formatting
+
+is
+
+$/basis.cm
+$/html-lib.cm
+
+style.sml    (* Style: styles for HTML 3 *)
+token.sml
+format.sml
+measure.sig
+measure.sml
+html-style.sml
+html-render.sig
+html-render.sml
+formatting.sig
+formatting.sml

@@ -1,0 +1,22 @@
+(* prettyprint/src/render.cm *)
+(* CDF for generic rendering (over devices) *)
+
+Library
+
+  signature DEVICE
+  signature RENDER
+  signature PRINT_FORMAT
+  functor RenderFn
+
+is
+
+device.sig
+render.sig
+printformat.sig
+render-fct.sml
+
+(* importing *)
+
+formatting.cm
+$smlnj/basis/basis.cm
+$/smlnj-lib.cm

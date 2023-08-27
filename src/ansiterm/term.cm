@@ -1,0 +1,24 @@
+(* prettyprint/src/ansiterm/term.cm *)
+(* CM Description File for the PrettyPrinter Library
+ * rendering/printing with styles to an ANSI terminal *)
+
+Library
+
+  structure ANSITermStyle
+  structure Render
+  structure PrintFormat    
+
+is
+
+ansiterm-style.sml  (* ANSITermStyle: styles for ansi terminals *)
+device-fct.sml      (* ANSITermDeviceFn *)
+device.sml          (* ANSITermDevice (outstream = stdOut) *)
+render.sml          (* Render = RenderFn (ANSITermDevice) *)
+printformat.sml     (* PrintFormat, depends on Render *)
+
+(* imports *)
+
+$/basis.cm
+$/smlnj-lib.cm
+../formatting.cm
+../render.cm

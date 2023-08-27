@@ -1,0 +1,14 @@
+Library
+
+  structure AST
+  structure FormatAST
+  structure Example
+
+is
+  example.sml
+
+(* imports *)
+  ../src/prettyprint-term.cm
+  $/basis.cm
+  $/smlnj-lib.cm
+
