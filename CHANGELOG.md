@@ -225,19 +225,31 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
 
 **Version 10.0 (2023.8)**
 
-- Simplified styles (styles are represented by strings).
-- Plain text rendering (plain text device) does not support styles.
-- Generic render function takes a device argument
-  -- device is responsible for "implementing" styles
-- Specialized render module for producing HTML 3.0.
+- Simplified styles (represented by strings).
+- Two models for implementing styles
+    -- device model, where their are two variants
+       -- plain text (no style support)
+	   -- ANSI terminal styles
+    -- rendering to another markup language, such as HTML
+- Device-based render function takes a device argument
+    -- devices are record values of type DeviceType.device containing lineWidth plus 
+	   a collection of output files (src/device/device-type.sml)
+    -- devices are responsible for "implementing" styles through a "renderStyle" function
+    -- the device-based render function performs output directly using the device output
+	   functions
+- Rendering to HTML is handled by a specialized render function (src/html/html-render.sml)
+    -- the HTML renderer produces the smlnj-lib/HTML representation of HTML 3, which then
+	   needs to be translated to textual HTML code and rendered using (e.g.) a browser or
+	   other HTML rendering engine.
+- Major reorganization of the src directories. The src subdirectories are:
+  base (Style, Token structures)
+  device (DeviceType, PlainDevice, and ANSITermDevice)
+  formatting (Format, Measure, Formatting) 
+  render (Render, PrintFormat)
+  html (HTMLStyle, Render)
 
-Modified:
-  src/default/style.sml --> src/style.sml  (type style = string)
-
-Added:
-  src/ansiterm-style.sml  -- interpretation of style strings for ANSITerm
-  src/html-style.sml      -- interpretation of style strings for HTML 3
-
-Removed:
-  src/default 
-  src/term
+  The base directory was added to avoid a conflict because both formatting and smlnj-lib
+  export a structure named "Format". This caused a CM error because device.cm was importing
+  both formatting.cm and smlnj-lib. This was corrected by having device.cm import base.cm
+  instead of formatting.cm. device.cm imports smlnj-lib for the ANSITerm structure.
+  

@@ -1,4 +1,4 @@
-(* prettyprint/src/html-style.sml *)
+(* prettyprint/src/html/html-style.sml *)
 
 (* formatting styles for an ANSITerm device; interpreting style strings as ANSITerm
  * styles *)

@@ -1,4 +1,4 @@
-(* prettyprint/src/html-render.sml *)
+(* prettyprint/src/html/html-render.sml *)
 
 (* Version 7.1
  *  the Render structure
@@ -14,7 +14,7 @@
  *  -- simplify Break constructor names: HardLine -> Hard, SoftLine -> Soft, NullBreak -> Null
  *)
 
-structure Render : HTML_RENDER =
+structure HTMLRender : HTML_RENDER =
 struct
 
 local
@@ -356,7 +356,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
    end (* fun render *)
 
 end (* top local *)
-end (* structure Render *)
+end (* structure HTMLRender *)
 
 (* NOTES:
 
