@@ -1,34 +1,27 @@
-(* smlnj-lib/PrettyPrint/src/printforamat.sig *)
+(* prettyprint/src/render/printformat.sig *)
 
-(* Version 8.5: new file
- * Imports : Format
- * Exports :
- *   signature PRINT_FORMAT
+(* Version 10.1
+ * Imports : Formatting, DeviceType
+ * Exports : signature PRINT_FORMAT
  *)
 
 signature PRINT_FORMAT =
 sig
     
-  (* functions used to define and access the line width
-     [Might include lineWidth as a component of the DEVICE parameter of the RenderFn.] *)
-
-    val setLineWidth : int -> unit
-	(* sets the current lineWidth value *)
-
-    val getLineWidth : unit -> int
-	(* returns the current line width *)
-
   (* Printing formats *)
 
-    val render : Format.format * int -> unit
+    val render : DeviceType.device -> Formatting.format -> unit
 
-    val printFormatLW  : int -> format -> unit
-        (* printing to stdOut, with line width (LW) as first argument *)
+    val renderStd : int -> Formatting.format -> unit
+        (* printing to stdOut, with line width as first argument *)
 
-    val printFormat : Format.format -> unit
-        (* print to stdOut with lineWidth = getLineWidth (), (typically = !Control.Print.lineWidth) *)
+    val renderANSI : int -> Formatting.format -> unit
+        (* printing to stdOut, with line width as first argument, supporing ANSITerm styles *)
 
-    val printFormatNL : Format.format -> unit
-	(* like printFormat, but with newline appened *)
+    val printFormat : Formatting.format -> unit
+        (* print to stdOut with default lineWidth (80) *)
+
+    val printFormatNL : Formatting.format -> unit
+	(* like printFormat, but with a newline appended to the format *)
 
 end (* signature PRINT_FORMAT *)

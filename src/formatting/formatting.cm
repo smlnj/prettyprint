@@ -1,25 +1,21 @@
-(* prettyprint/src/formatting.cm *)
+(* prettyprint/src/formatting/formatting.cm *)
 (* CM Description File for formatting. *)
-
-(* prettyprint/src/formatting.cm *)
-(* CDF for formatting *)
 
 Library
 
-  structure Style
-  structure Token
-  structure Format
-  structure Formatting
+  structure Format      (* format.sml *)
+  structure Measure     (* measure.sml *)
+  structure Formatting  (* formatting.sml *)
 
 is
 
-style.sml            (* Style: generic version, style = string *)
-token.sml            (* "tokens" *)
-format.sml           (* Format *)
-measure.sig          (* MEASURE *)
-measure.sml          (* Measure *)
-formatting.sig       (* FORMATTING *)
-formatting.sml       (* Formatting *)
+format.sml           (* -> Format: the concrete format type *)
+measure.sig          (* -> MEASURE *)
+measure.sml          (* -> Measure *)
+formatting.sig       (* -> FORMATTING: format construction functions *)
+formatting.sml       (* -> Formatting: exports abstract format type *)
 
 (* imports *)
+../base/base.cm      (* <- Style, Token *)
+
 $smlnj/basis/basis.cm

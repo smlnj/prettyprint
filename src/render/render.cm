@@ -1,22 +1,23 @@
-(* prettyprint/src/render.cm *)
+(* prettyprint/src/render/render.cm *)
 (* CDF for generic rendering (over devices) *)
 
 Library
 
-  signature DEVICE
-  signature RENDER
-  signature PRINT_FORMAT
-  functor RenderFn
+  structure PrintFormat  (* printformat.sml *)
 
 is
 
-device.sig
-render.sig
-printformat.sig
-render-fct.sml
+(* member source files *)
 
-(* importing *)
+render.sig         (* -> RENDER *)
+render.sml         (* -> Render *)
+printformat.sig    (* -> PRINT_FORMAT *)
+printformat.sml    (* -> PrintFormat *)
 
-formatting.cm
+(* imports *)
+
+../base/base.cm              (* <- Style, Token *)
+../formatting/formatting.cm  (* <- Format, Measure, Formatting *)
+../device/device.cm          (* <- DeviceType, PlainDevice, ANSITermDevice *)
+
 $smlnj/basis/basis.cm
-$/smlnj-lib.cm

@@ -1,0 +1,13 @@
+(* prettyprint/src/base/base.cm *)
+(* CM Description File for base types style and token. *)
+
+Library
+
+  structure Style  (* style.sml *)
+  structure Token  (* token.sml *)
+
+is
+
+style.sml (* -> Style: generic version, where style = string *)
+token.sml (* -> Token: "tokens", measured strings *)
+

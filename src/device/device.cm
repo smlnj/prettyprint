@@ -1,0 +1,24 @@
+(* prettyprint/src/device/device.cm *)
+(* CM Description File for devices *)
+
+Library
+
+  structure DeviceType
+  structure PlainDevice 
+  structure ANSITermStyle
+  structure ANSITermDevice
+
+is
+
+(* member source files *)
+
+device-type.sml     (* -> DeviceType *)
+device-plain.sml    (* -> PlainDevice *)
+ansiterm-style.sml  (* -> ANSITermStyle: styles for ansi terminals *)
+device-ansi.sml     (* -> ANSITermDevice *)
+
+(* imports *)
+
+../base/base.cm     (* <- Style, Token -- don't need Format *)
+$/basis.cm
+$/smlnj-lib.cm      (* <- ANSITerm, (& Format!) *)

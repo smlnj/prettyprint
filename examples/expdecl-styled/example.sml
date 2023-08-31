@@ -4,6 +4,7 @@
  * All rights reserved.
  *
  * Formatting simple expressions and declarations with ANSI terminal styles.
+ * (Version 10.1 of PrettyPrint *)
  *)
 
 structure AST =
@@ -25,7 +26,7 @@ structure FormatAST :
 sig
 
     (* format an expression *)
-    val formatExp : AST.exp -> Format.format
+    val formatExp : AST.exp -> Formatting.format
 
 end =
 
@@ -45,9 +46,10 @@ in
   val numStyle : S.style list = ["FG.Green"]
   val opStyle : S.style list = ["BF"]
 
-  (* wrapStyles : S.style list * F.format -> F.format *)
+  (* wrapStyles : S.style list * FG.format -> FG.format *)
   fun wrapStyles (nil, fmt) = fmt
-    | wrapStyles (style::styles, fmt) = F.STYLE (style, wrapStyles (styles, fmt))
+    | wrapStyles (style::styles, fmt) =
+        FG.style (style, wrapStyles (styles, fmt))
 
   (* kw : string -> F.format *)
   fun kw s = wrapStyles (kwStyle, FG.text s)
@@ -81,12 +83,14 @@ in
 
   and fmtDcl (AST.Val (name, exp)) =
       FG.block
-	[FG.hblock [valKW, FG.text name, FG.equal],
+	[FG.hblock [valKW, var name, FG.equal],
 	 FG.indent 4 (formatExp exp)]
 
   and fmtDcls dcls = FG.vblock (List.map fmtDcl dcls)
 
-  fun render (e: exp) = Render.render (formatExp e)
+  fun render (lw: int) (e: exp) = PrintFormat.renderStd lw (formatExp e)
+
+  fun renderANSI (lw: int) (e: exp) = PrintFormat.renderANSI lw (formatExp e)
 
 end (* top local *)
 end (* structure *)
@@ -95,13 +99,17 @@ end (* structure *)
 structure Example =
 struct
 
-  local open AST in
+local 
 
-    val exp1 = Num 42
-    val exp2 = Var "foo"
-    val exp3 = Plus (Plus(Num 1, Num 2), Num 3)
-    val exp4 = Let ([Val ("x", Num 1), Val ("y", Num 2)], [Plus (Var "x", Num 3), Var "y"]);
+  structure A = AST
 
-  end (* local open *)
+in
 
+    val exp1 = A.Num 42
+    val exp2 = A.Var "foo"
+    val exp3 = A.Plus (A.Plus (A.Num 1, A.Num 2), A.Num 3)
+    val exp4 = A.Let ([A.Val ("x", A.Num 1), A.Val ("y", A.Num 2)], 
+	              [A.Plus (A.Var "x", A.Num 3), A.Var "y"]);
+
+end (* top local*)
 end (* structure Example *)
