@@ -19,12 +19,12 @@ struct
 
 local
 
-  structure H = HTML (* smlnj-lib/HTML/html.sml (HTML 3 abstract syntax) *)
-  structure F = Format
-  structure M = Measure
-  structure S = Style (* html/html-style.sml *)
+  structure H = HTML       (* <- smlnj-lib/HTML/html.sml -- HTML 3 abstract syntax *)
+  structure F = Format     (* <- ../formatting/format.sml -- concrete format representation *)
+  structure M = Measure    (* <- ../formatting/measure.sml -- measure for concrete formats *)
+  structure S = HTMLStyle  (* <- html-style.sml -- HTML styles *)
 
-  fun error (msg: string) = (print ("NewPrettyPrint Error: " ^ msg); raise Fail "Render")
+  fun error (msg: string) = (print ("Error[HTMLRender]: " ^ msg); raise Fail "Render")
 in
 
 (* utilities *)
@@ -56,7 +56,7 @@ fun lineBreak (blm, texts) =
 
 (* wrapStyle : S.style * H.text -> H.text *)
 (* wrap a text with a style, e.g. B for bold *)
-fun wrapStyle (style, text) =
+fun wrapStyle (style : S.htmlStyle, text: H.text) : H.text =
     (case style
       of S.NOEMPH => text
        | S.TT => H.TT text
@@ -73,8 +73,8 @@ fun wrapStyle (style, text) =
        | S.VAR => H.VAR text
        | S.CITE => H.CITE text
        | S.COLOR c => H.FONT{color=SOME c, size=NONE, content=text}
-       | S.A{name, href} =>
-	   H.A {name = name, href = href,
+       | S.A href =>
+	   H.A {name = NONE, href = SOME href,
 		rel = NONE, rev = NONE, title = NONE,
 		content = text})
 
@@ -99,7 +99,7 @@ fun consolidate text =
        | H.VAR text' => H.VAR (consolidate text')
        | H.CITE text' => H.CITE (consolidate text')
        | H.FONT {color, size, content} => H.FONT{color=color, size=size, content=(consolidate content)}
-       | H.A{name, href, rel, rev, title, content} =>
+       | H.A {name, href, rel, rev, title, content} =>
 	   H.A {name = name, href = href,
 		rel = rel, rev = rev, title = title,
 		content = consolidate content}
@@ -135,7 +135,8 @@ fun lineBreak (ind: int, texts: H.text list) = space ind :: H.BR{clear=NONE} :: 
  *)
 fun render (format: F.format, lineWidth: int) : H.text =
     let (* flatRender : format -> H.text
-	 *   render as though on an unbounded line (lw = "infinity"), thus "flat" (i.e. no line space pressure).
+	 *   render as though on an unbounded line (lw = "infinity"), thus "flat" 
+	 *     (i.e. no line space pressure).
 	 *   _No_ newlines are triggered, not even Hard breaks and INDENT formats, which are
 	 *   rendered as single spaces, like Softline breaks. Thus we do not need to keep track of cc and 
 	 *   newlinep (post line break status).
@@ -154,7 +155,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
 			 | F.INDENT (_, fmt) => render1 fmt  (* ignoring INDENT *)
 			 | F.FLAT fmt => render1 fmt         (* already flat, so FLAT does nothing *)
 			 | F.ALT (fmt, _) => render1 fmt     (* any format fits, so render first *)
-			 | F.STYLE (style, fmt) => wrapStyle (style, render1 fmt))
+			 | F.STYLE (style, fmt) => wrapStyle (S.styleToHtmlStyle style, render1 fmt))
 
 		(* renderBLOCK : element list -> H.text *)
 		and renderBLOCK nil = empty  (* render an empty BLOCK as empty; should not happen! *)
@@ -245,7 +246,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
 
                   | F.STYLE (style, format) =>
 		      let val (text, cc', newlinep') = render1 (format, cc, newlinep)
-		       in (wrapStyle (style, text), cc', newlinep')
+		       in (wrapStyle (S.styleToHtmlStyle style, text), cc', newlinep')
 		      end)
 
         (* How to deal with adjacent breaks in BLOCKs:
@@ -279,19 +280,21 @@ fun render (format: F.format, lineWidth: int) : H.text =
 			   let val (text, cc', newlinep') = render1 (format, cc, newlinep)
 			    in (text::texts, cc', newlinep')
 			   end
-		       | F.BRK break =>  (* rest should start with a FMT! (or keep skipping breaks until this is true) *)
+		       | F.BRK break =>
+			   (* rest should start with a FMT! (alternatively, skip breaks until this is true?) *)
 			   (case break
 			      of F.Null    => (texts, cc, false)
 			       | F.Hard    => (lineBreak (blm, texts), blm, true)
 			       | F.Space n => (space n :: texts, cc + n, false)
-			       | F.Soft n  =>  (* oops -- only have the current (head) element, don't have the "rest" *)
+			       | F.Soft n  =>
 				   (case rest  
 				      of F.FMT format' :: rest' =>  (* lookahead one format element *)
 					   if M.measure format' <= (lineWidth - cc) - n  (* format' fits *)
 					   then iter (rest, space n :: texts, cc+n, false) (* "emit" n spaces *)
 					   else iter (rest, lineBreak (blm, texts), blm, true)
 			                        (* trigger newline+indent *)
-				       | _ :: rest' => iter (rest', texts, cc, newlinep)))
+				       | _ :: rest' => iter (rest', texts, cc, newlinep)
+				       | nil => error "basic block should not end with a soft linebreak"))
 			                  (* skip a break that is followed by a break *)
 
 		val (texts, cc', newlinep') = iter (elements, nil, cc, newlinep)

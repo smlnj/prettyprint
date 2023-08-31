@@ -18,7 +18,9 @@ datatype htmlStyle
   | STRONG | DFN | CODE | SAMP | KBD
   | VAR | CITE
   | COLOR of string (* the names of colors as spacified for HTML 3.2 *)
-  | A of string (* the href URL string *)
+  | A of string  (* the href URL string *)
+
+fun isSharpChar (c : char) = (c = #"#")
 
 (* styleToHtmlStyle : S.style -> htmlStyle *)
 fun styleToHtmlStyle (s: S.style) =
@@ -38,10 +40,18 @@ fun styleToHtmlStyle (s: S.style) =
        | "VAR" => VAR
        | "CITE" => CITE
        | _ => (* check for A or COLOR *)
-	  (case (String.fields Char.isPunct s)
+	  (case (String.fields isSharpChar s)
 	     of ["A", href] => A href
 	      | ["COLOR", color] => COLOR color
 	      | _ => raise S.UnrecognizedStyle)
+
+(* A color style string is of the form "COLOR#Black", where "Black" could be the string
+ * name of any HTML color.
+ * An "A" link is of the form "A#<url string>".
+ * Otherwise, a style string should match one of the explicit lhs string patterns in the 
+ * styleToHtmlStyle function above.
+ *)
+
 
 end (* top local *)
 end (* structure HTMLStyle *)    
