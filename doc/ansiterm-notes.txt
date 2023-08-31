@@ -8,7 +8,9 @@ Version 1: tmode -- a terminal mode type
 
 * Terminal mode
 
-Terminal mode is a record of modes that a ANSIterm may be in, according to the smlnj-lib ANSITerm structure.
+Terminal mode is a record of modes that a ANSIterm may be in, according to the smlnj-lib
+ANSITerm structure.
+
 The individual modes are:
 
 fg : color  -- foreground color: default Black
@@ -170,6 +172,57 @@ from NOEMPH style scope). This was done be adding "backup" veriables
 for each terminal mode variable (e.g. bu_bf for bf) where the current
 value of the variable (bf) could be stored by resetTerm and restored
 by revertTerm.
+
+
+========================================================================================== 
+Version 3: generic string styles and devices (PlainDevice, ANSITermDevice)
+==========================================================================================
+
+In Prettyprint Version 10.1, the generic style type is just string,
+and the interpretation of strings is left to a "device", in particular
+a function renderStyled that is a component of a device records.
+
+A device is a record value, of the type device as defined in src/device/device-type.sml:
+
+type device
+  = {lineWidth : int,
+     space  : int -> unit,
+     indent : int -> unit,
+     newline : unit -> unit,
+     string : string -> unit,
+     token : Token.token -> unit,
+     flush : unit -> unit,
+     renderStyled : Style.style * (unit -> renderState) -> renderState}
+
+where the type renderState describes the internal "state" of the
+render function during rendering (it is actually int * bool).
+
+A device has a lineWidth attribute measured in monospace characters
+(defaulting to 80 characters). It also has a set of output functions
+(space, string, newline, indent, etc.) that produce output and are
+called during the rendering process (so rendering does the printing
+directly without producing an intermediate "layout" data structure).
+
+When a STYLE format (STYLE (style, format)) is rendered, the style
+string is passed to renderStyled, which will translate it internally
+to a style appropriate to the given device.
+
+There are (initially) only two kinds of devices:
+
+  (1) plain text devices (produced by PlainDevice.mkDevice)
+  (2) ANSI terminal devices (produced by ANSITermDevice.mkDevice)
+
+The mkDevice functions have the type
+
+    mkDevice : TextIO.outstream -> int -> device
+
+where the outstream is the outstream to be used for output, and the
+int is the (soft) lineWidth limit.
+
+
+
+
+
 
 
 ==========================================================================================
