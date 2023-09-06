@@ -6,7 +6,7 @@ in
 datatype tree = Node of string * tree list
 
 fun formatTree (Node (s, trees)) = 
-    ccat (text s, formatTrees trees)
+    cblock [text s, formatTrees trees]
 
 and formatTrees nil = empty
   | formatTrees trees = brackets (vsequence comma (map formatTree trees))
@@ -21,5 +21,6 @@ val tree1 =
 		 [Node ("gg", nil),
 		  Node ("hhh", nil),
 		  Node ("ii", nil)])]);
-
+++
+    
 end
