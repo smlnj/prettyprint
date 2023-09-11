@@ -55,15 +55,19 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 ## Documentation
 
-The following files are located in the doc directory:
 [This documentation is currently for Version 8.5, and needs to be
-updated for Version 10.0.]
+updated for Version 10.0 to document styles, for instance.]
 
+The following files are located in the doc directory:
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
 
 - doc/prettyprint-manual.{adoc, html}, the manual for the prettyprinter library
 
-A tech report with deeper documentation of the design and its
-background being prepared and should be available by early September,
+The file MLF2023-talk.pdf contains the slides for MacQueen's talk on
+the new prettyprint library at the ML Family Workshop, Sept 8, 2023 in
+Seattle.
+
+A tech report with deeper and broader documentation of the design and its
+background is being prepared and should be available by the end of September,
 2023.
 
