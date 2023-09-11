@@ -55,7 +55,7 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 ## Documentation
 
-[This documentation is currently for Version 8.5, and needs to be
+[The documentation in the two adoc files is currently for Version 8.5, and needs to be
 updated for Version 10.0 to document styles, for instance.]
 
 The following files are located in the doc directory:
