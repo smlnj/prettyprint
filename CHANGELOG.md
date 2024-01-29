@@ -233,7 +233,8 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
     -- rendering to another markup language, such as HTML
 - Device-based render function takes a device argument
     -- devices are record values of type DeviceType.device containing lineWidth plus 
-	   a collection of output files (src/device/device-type.sml)
+	   a collection of output functions
+	   (src/device/device-type.sml)
     -- devices are responsible for "implementing" styles through a "renderStyle" function
     -- the device-based render function performs output directly using the device output
 	   functions
@@ -251,5 +252,55 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
   The base directory was added to avoid a conflict because both formatting and smlnj-lib
   export a structure named "Format". This caused a CM error because device.cm was importing
   both formatting.cm and smlnj-lib. This was corrected by having device.cm import base.cm
-  instead of formatting.cm. device.cm imports smlnj-lib for the ANSITerm structure.
+  instead of formatting.cm. device.cm imports smlnj-lib for the
+  ANSITerm structure.
+  
+  Note, however, that the smlnj-lib ANSITerm structure only has style constructor BF (for
+  bold), and no italics style. Whether BF has any affect depends on whether the (default)
+  typeface for the particular ANSITerm terminal has a bold font in its font family.  (The
+  inconsolata type face I use in emacs does not, so no bold effect is available.
+  
+**Version 10.2 (2024.1)
+
+- Revised version of Device: DEVICE such that a device is a simple record value rather
+  than an "object-like" record of functions. A device type needs to specify and output
+  stream and also a line width.
+  
+- A "logical" style is represented by the type Format.style == string.
+
+- Added Mode structures (as substructures of Device structures) that define the "mode" or
+  "physical style" associated with a class of devices. Also introduced the stylemap type
+  relative to a device class mode: (`stylemap = string -> mode`) which is used to
+  translate logical style names into the desired physical style or mode for a given
+  device. The definition of a stylemap is the responsibility of the writter of a
+  particular formatter, who has to decide what "logical styles" to introduce and how they
+  should translate to device modes.
+  
+- The Render structure is replaced by a RenderFn functor that takes a DEVICE structure
+  as its argument.
+  
+- The render function now takes a stylemap and a device as arguments in addition to a
+  (concrete, i.e. Format.format) format. The device provides the value of the line width.
+
+- Two device structures are defined: `Plain_Device` and `ANSITerm_Device`. The Device
+  model is not appropriate for the problem of, for instance, rendering formats to HTML.
+  
+- The name of the library remains as "Prettyprint" for the time being, but may change.
+
+  
+** ANSI terminal variations
+
+  For prettyprinting, we are only interested those ANSI escape codes that control
+  attributes of displayed text (font, color, underlining, weight, density, blinking.).
+  
+  However, the implementation of such codes in a particular terminal (emulator) is
+  sometimes optional and is not consistent between terminal emulators.  For instance, the
+  Ubuntu (Linux?) xterm program implements the boldface code using boldface, while the
+  macOS terminal program presents boldface text as non-boldfaced red text, while in the
+  terminal emulation in the emacs shell the boldface code has no effect. The effect of
+  codes (like BF for boldface) may also depend on the typeface used by the terminal
+  emulator, in particular the set of fonts available for that typeface.  What happens when
+  multiple codes are combined can also vary between terminal emulations.
+  
+  
   

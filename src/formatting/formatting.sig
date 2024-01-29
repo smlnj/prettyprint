@@ -31,7 +31,7 @@
  *   uses with calls of the corresponding xblock function with lists of two formats.
  *   Dropping the tuple(Map) function and renaming tupleFormat to "tuple".
  *   Shortening the names of the HardLine and SoftLine break constructors to "Hard" and "Soft".
- *   -- renamed (with same type):
+ *   Renamed (with same type):
  *      HardLine -> Hard
  *      SoftLine -> Soft
  *      NullBreak -> Null
@@ -42,14 +42,15 @@
  *      formatClosedSeq -> closedSequenceMap (-> removed)
  *      vHeaders -> vHeadersMap (-> removed)
  *      vHeaderFormats -> vHeaders
- *   -- removed:
+ *   Removed:
  *      tuple [i.e. the function that should have been called tupleMap; recycled as new name for tupleFormats]
  *      hcat [-> hblock w. 2-element list of formats]
  *      pcat [-> pblock]
  *      vcat [-> vblock]
  *      ccat [-> cblock]
  *  
- *      The map versions of various functions: (these are not used anywhere in SML/NJ?)
+ *      The map versions of various functions:
+ *         (These are not used anywhere in SML/NJ and can be replaced by composing with List.map.)
  *      sequenceMap
  *      closedSequenceMap
  *      listMap
@@ -61,6 +62,9 @@
  *     PRETTYPRINT -> FORMATTING
  *     PrettyPrint -> Formatting
  *     render and printing functions, and getLineWidth moved from Formatting (PrettyPrint) to printformat.sml
+ *
+ * Version 10.2 [2024.1.26]
+ *   Re-exports style and token types (now) defined in Format (for completeness?)
  *)
 
 (* Defines: signature FORMATTING *)
@@ -72,19 +76,25 @@ sig
 
     type format     (* abstract, defined in Format structure *)
 
-    datatype break  (* used to separate format elements of a block; space, conditional, and unconditional line breaks *)
+    type style = Format.style  (* "logical" styles to be interpretted during rendering (styleMap) *)
+		     
+    type token = Format.token
+
+  (* break: used to separate format elements of a block
+   *   space and conditional/unconditional line breaks, and a Null break for completeness *)
+    datatype break
       = Hard          (* _hard_ or unconditional line break *)
       | Soft of int   (* _soft_ or conditional line break; rendered to n spaces when not triggered; n >= 0 *)
-      | Space of int  (* n spaces; n >= 0; Space 0 == Null *)
+      | Space of int  (* n spaces; n >= 0; Space 0 and Null have same effect *)
       | Null          (* A default break that does nothing, i.e. neither breaks a line nor inserts spaces.
 		       * This is essentially equivalent to Space 0, but included for logical "completeness",
 		       * and to eliminate the need for break option in some places (alignmentToBreak). *)
 
     datatype alignment  (* the alignment property of "aligned" blocks *)
-      = H  (* Horizontal alignment, with implicit single space breaks (Space 1) between format components, unbreakable *)
-      | V  (* Vertical alignment, with implicit hard line breaks (Hard) between format components *)
-      | P  (* Packed alignment, with implicit soft line breaks (Soft 1) between format components *)
-      | C  (* compact, no breaks (or implicit Null) between block format components, hence unbreakable *)
+      = H  (* Horizontal alignment, implicit Space 1 breaks between format components, unbreakable *)
+      | V  (* Vertical alignment, implicit Hard break between format components *)
+      | P  (* Packed alignment, implicit Soft 1 breaks between format components *)
+      | C  (* Compact, no breaks (implicit Null) between block format components, unbreakable *)
 
     datatype element
       = BRK of break   (* breaks are atomic and do not contain content *)
@@ -97,9 +107,9 @@ sig
   (* Basic formats and format building operations: *)
 
     val empty   : format           (* == EMPTY, renders as empty string, composition identity *)
-    val text    : string -> format (* == the TEXT format constructor *)
+    val text    : string -> format (* == TEXT format constructor *)
     val integer : int -> format    (* integer n renders as Int.toString n *)
-    val string  : string -> format (* previously used PrintUtil.formatString, adds double quotes *)
+    val string  : string -> format (* adds double quotes; previously used PrintUtil.formatString *)
     val char    : char -> format   (* c --> #"c" *)
     val bool    : bool -> format   (* true --> TEXT "true", false --> TEXT "false" *)
 
@@ -211,6 +221,6 @@ sig
     val hvblock : format list -> format
 	(* acts as hblock if it fits, otherwise as vblock *)
 
-    val styled : Style.style -> format -> format
+    val styled : style -> format -> format
 
 end (* end FORMATTING *)

@@ -3,22 +3,21 @@
 
 Library
 
-  structure DeviceType
-  structure PlainDevice 
-  structure ANSITermStyle
-  structure ANSITermDevice
+  signature DEVICE
+  structure ANSITerm_Device
+  structure Plain_Device 
 
 is
 
 (* member source files *)
 
-device-type.sml     (* -> DeviceType *)
-device-plain.sml    (* -> PlainDevice *)
-ansiterm-style.sml  (* -> ANSITermStyle: styles for ansi terminals *)
-device-ansi.sml     (* -> ANSITermDevice *)
+device.sig          (* <- signature DEVICE *)
+plain-device.sml    (* <- structure Plain_Device *)
+ansiterm-mode.sml   (* <- structure ANSITerm_Mode:
+                          "physical style" modes for ANSI terminals *)
+ansiterm-device.sml (* <- structure ANSITerm_Device for ANSI terminals *)
 
 (* imports *)
 
-../base/base.cm     (* <- Style, Token -- don't need Format *)
 $/basis.cm
-$/smlnj-lib.cm      (* <- ANSITerm, (& Format!) *)
+$/smlnj-lib.cm      (* <- ANSITerm, (& an unrelated Format!) *)

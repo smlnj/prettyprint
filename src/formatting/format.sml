@@ -27,18 +27,38 @@
  * 
  * Version 8.4 [2023.3.1]
  * -- rename Break constructor names: HardLine -> Line, SoftLine -> Soft, NullBreak -> Null
- *)
+ *
+ * Version 10.2 [2024.1.26]
+ *   Added
+ *     type style = string  -- the unique type for all "logical" styles (e.g. "keyword")
+ *       eliminating the need for the Style structure
+ *     type token with functions mkToken, tokenSize, tokenToString
+ *       eliminating the need for the Token structure
+*)
 
 (* structure Format:
- *   no signature
- *   exports datatypes: alignment, break, element, and format
- *   imports Style
+ *   no signature  (hence no type abstraction)
+ *   exports datatypes: alignment, break, element, token, format, style
  *)
 
 structure Format =
 struct
 
-(* IMPORTS: Style *)
+(* the unique type for all logical styles; which are to be interpreted during rendering via
+ * a styleMap function *)
+type style = string
+
+(* token -- sized special strings (e.g. utf8), not abstract *)
+type token = string * int
+
+(* mkToken : string * int -> token *)
+fun mkToken (s: string, n: int): token = (s,n)
+
+(* tokenSize : token -> int *)
+fun tokenSize ((_,n): token) = n
+
+(* tokenToString : token -> string *)
+fun tokenToString ((s,_): token) = s
 
 (* datatype alignment: alignment modes for "aligned" blocks *)
 datatype alignment  (* the alignment property of "aligned" blocks *)
@@ -79,7 +99,8 @@ datatype format =
       (* soft indent the format n spaces, sinilar to Hughes's nest *)
   | FLAT of format
       (* render (and measure) the format as flat *)
-  | STYLE of Style.style * format
+  | STYLE of style * format
+      (* render with (layered) logical style *)
 
   (* conditional choice of formats *)
   | ALT of format * format

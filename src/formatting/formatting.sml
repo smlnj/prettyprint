@@ -65,6 +65,13 @@
  * Version 9.1
  *   -- Added
  *      styled
+ *
+ * Version 10.2 [2024.1.26]
+ *   Added
+ *     type style = Format.style = string  -- the unique type for all "logical" styles (e.g. "keyword")
+ *     type token (defined in Format now)
+ *
+ *   Thus eliminating the need for the Style and Token structures.
  *)
 
 (* Defines:
@@ -76,14 +83,16 @@ struct
 
 local
 
-  structure S = Style
   structure F = Format
   structure M = Measure
 
 in
 
-(* types from the Format structure *)
+(* types from the Format structure re-exported here *)
 type format = F.format
+type token = F.token
+type style = F.style
+
 datatype alignment = datatype F.alignment
 datatype element = datatype F.element
 datatype break = datatype F.break
@@ -95,7 +104,7 @@ fun formatRep (fmt : F.format) : F.format = fmt
 (*** the basic block building functions ***)
 
 (* reduceFormats : format list -> format list *)
-(*   filter out empty components formats *)
+(*   filter out F.EMPTY formats from a format list *)
 fun reduceFormats (formats: format list) =
     let fun notEmpty F.EMPTY = false
 	  | notEmpty _ = true
@@ -103,7 +112,7 @@ fun reduceFormats (formats: format list) =
     end
 
 (* reduceElements : element list -> element list *)
-(*   filter out FMT EMPTY elements *)
+(*   filter out FMT EMPTY elements from an element list *)
 fun reduceElements (elements: F.element list) =
     let fun notEmpty (F.FMT F.EMPTY) = false
 	  | notEmpty _ = true
@@ -116,7 +125,7 @@ fun reduceElements (elements: F.element list) =
 fun block elements =
     (case reduceElements elements
        of nil => F.EMPTY
-	| [F.FMT fmt] => fmt  (* special blocks consisting of a single (FMT fmt) element, reduce to fmt *)
+	| [F.FMT fmt] => fmt  (* special blocks containing a single FMT fmt element reduce to fmt *)
         | _ => F.BLOCK {elements = elements, measure = M.measureElements elements})
 
 (* aBlock : alignment -> format list -> format *)
@@ -127,7 +136,8 @@ fun aBlock alignment formats =
 	  of nil => F.EMPTY
 	   | [fmt] => fmt
 	   | formats' =>
-	       F.ABLOCK {formats = formats', alignment = alignment, measure = M.measureFormats (breaksize, formats')}
+	     F.ABLOCK {formats = formats', alignment = alignment,
+		       measure = M.measureFormats (breaksize, formats')}
     end
 
 
@@ -310,8 +320,8 @@ fun indent (n: int) (fmt: format) =
        of F.EMPTY => F.EMPTY
         | _ => F.INDENT (n, fmt))
 
-(* styled : S.style * format -> format *)
-fun styled (style: S.style) (format: format) = F.STYLE (style, format)
+(* styled : F.style * format -> format *)
+fun styled (style: F.style) (format: format) = F.STYLE (style, format)
 
 end (* top local *)
 end (* structure Formatting *)

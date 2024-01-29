@@ -1,0 +1,32 @@
+device-notes.txt
+
+Files
+
+NEW_ansitermstyle.sml  (should be ansiterm-device.sml)
+ansiterm-modes.sml  - mode and modes types (ANSI terminal "physical style")
+
+The main idea is that a logical style will map to a physical mode for
+an ANSI terminal (ANSI_Term_Modes.modes).  "Imposing" a mode on a
+terminal outstream set corresponding attributes of the terminal device,
+and is recorded on its state stack.
+
+
+* Cancelling text highlighting modes using a Normal text attribute.
+
+Currently there is no way to specify "normal" or "regular" font through an
+ANSI terminal mode (physical style). We could add a "Normal" attribute
+that would specify normal font, which could in effect "cancel" BoldFace,
+Dim, Underlined, and Blink attributes. The Normal attribute would conflict
+with any of the other _font_ attributes (Bold, Dim, Underlined, Blinking) and
+would be set by default. A modes value (attribute list) should not contain
+both Normal and any of Bold, Dim, Underlined, Blinking. Adding the BoldFace attribute would then involve removing/replacing the Normal attribute, and
+vice versa, adding Normal would require removing BoldFace, Dim, Underlined,
+and Blinking, if any of those are present in a modes list.
+
+Alternatively one could treat Normal as also orthogonal to Dim, Underlined,
+and Blinking so that Normal + {Dim | Underlined | Blinking} was possible.
+
+
+* Is outstream an ANSI terminalz?
+
+Asking if outstream is a TTY does not do much good, since even knowing that we can't query whether an outstream is an ANSI terminal.  We must just assume that any ANSI terminal device has an outstream associated with an ANSI terminal (or emulation).

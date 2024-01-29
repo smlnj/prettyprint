@@ -3,8 +3,6 @@
 
 Library
 
-  structure Style
-  structure Token
   structure Formatting
   structure PrintFormat    
 
@@ -12,7 +10,6 @@ is
 
 (* imports *)
 $smlnj/basis/basis.cm
-base/base.cm
 formatting/formatting.cm
 render/render.cm
 

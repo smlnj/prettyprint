@@ -1,7 +1,7 @@
 (* prettyprint/src/formatting/formatting.cm *)
 (* CM Description File for formatting. *)
 
-Library
+Library (* Formatting *)
 
   structure Format      (* format.sml *)
   structure Measure     (* measure.sml *)
@@ -16,6 +16,5 @@ formatting.sig       (* -> FORMATTING: format construction functions *)
 formatting.sml       (* -> Formatting: exports abstract format type *)
 
 (* imports *)
-../base/base.cm      (* <- Style, Token *)
 
 $smlnj/basis/basis.cm

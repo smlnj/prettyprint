@@ -20,8 +20,13 @@
 signature RENDER =
 sig
 
-  val render : DeviceType.device -> Format.format -> unit
-  (* render device fmt: render fmt, using the device lineWidth and
-   * printing to the (implicit) output stream used by the device *)
+  type stylemap
+
+  type device
+
+  val render : stylemap * device -> Format.format -> unit
+  (* render (styleMap, device) fmt: render fmt, using the line width and outstream
+   * provided by the device, and using styleMap to translate logical styles (strings)
+   * to device modes (physical styles for the device). *)
 
 end (* signature RENDER *)

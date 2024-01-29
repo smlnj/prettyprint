@@ -20,8 +20,8 @@
  *  the format. [file name is changed from "render.sml" to "render-fct.sml"]
  *  -- The STYLE format constructor is added and is handled through a "styledFormat" function provided
  *  by the device. The device is a character-oriented output device with a mode state that corresponds to
- *  a set of device styles (BF, FG color, etc. -- see ANSITermStyle for instance). Styles are implemented
- *  by modifying the device (terminal) mode during the rendering of a styled format.
+ *  a set of device "modes" (BF, FG color, etc. -- see ANSITermMode for instance). Logical styles are
+ *  implemented by mapping them to device (terminal) modes during the rendering of a styled format.
  *
  * Version 10.0 [2023.8]
  *  -- added rendering of tokens (TOKEN formats)
@@ -29,45 +29,78 @@
  * Version 10.1 [2023.8]
  *  -- device as a record value (with monomorphic renderStyled component)
  *  -- single Render structure for plain and asci terminal styling
+ *
+ * Version 10.2 [2024.1]
+ *  -- separation of logical styles (strings) and physical (device) styles (modes)
+ *  -- revision of the device stuff (DEVICE, Plain_Device, ANSITerm-Mode, ANSITerm_Device, RenderFn)
+ *     Render structure becomes a functor RenderFn paramaterize wrt a Device structure.
+ *  -- Device notion supports cascading styles for certain devices, the only one initially supported
+ *     is ANSI terminal.  Rendering to a formatting language like HTML is a separate issue not covered
+ *     by the device model.
  *)
 
 (* --------------------------------------------------------------------------------
- *  Render: the Rendering structure (for devices, like plain and ansiterm)
- *    For rendering to the HTML 3 markup language, we define an ad hoc HTMLRender structure.
+ *  Render: the rendering functor (for devices such as plain and ansiterm)
+ *    For rendering to the HTML 3 markup language, we define a separate _ad hoc_ HTMLRender structure.
  * -------------------------------------------------------------------------------- *)
 
-structure Render : RENDER =
+functor RenderFn (D : DEVICE) : RENDER =
 struct
 
 local
 
-  structure T = Token
   structure F = Format
   structure M = Measure
-  structure DT = DeviceType
 
-  fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise Fail "Render")
+  exception RenderError
+  fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderError)
 
 in
 
 (* There is just one exported rendering function: render.
  * The flatRender function is defined and used within the render function, and is not exported. *)
 
-val renderState0 : DT.renderState = (0, true)
+(* exported *)
+type mode = D.Mode.mode
+(* styleMap -- mappings from logical styles (strings) to device-specific modes (physical styles) *)
+type stylemap = D.Mode.stylemap
 
-(* render : format * [lineWidth]int -> unit
+(* renderState: the state maintained during rendering.
+ *   int: the current indentation or starting column
+ *   bool: whether the render immediately follows a newline + indentation *)
+type renderState = int * bool
+
+(* initial render state: at the beginning of a line, assuming following a newline *)
+val renderState0 : renderState = (0, true)
+
+(* render : styleMap * D.device -> format -> unit
+ *   styleMap: mapping from logical styles (F.style) to device modes
+ *   device: determines outstream and its associated lineWidth
  *   format: format  -- the format to be rendered and printed
- *   lineWidth: int  -- the line width, assumed fixed during the rendering of the given format
- * The top-level render function decides where to conditionally break lines, and how much indentation should follow
- * each line break, based on the line space available (the difference between the currend column and the device line width).
- * In this version (Version 10.1), the render function also prints the content and formatting, using the output
- * functions provided by the device parameter. Thus rendering and printing are unified and there
- * is no intermediate "layout" structure.
- * Internal rendering functions (render1, renderBLOCK, renderABLOCK) are (roughly) renderState -> renderState.
+ * The device, and hence the outstream and line width, are, assumed fixed during the rendering of the given format.
+ * The top-level render function decides where to conditionally break lines, and how much
+ * indentation should follow each line break, based on the line space available (the difference
+ * between the currend column and the device line width). In this version (10.2), the render
+ * function also prints the content and formatting, using the output functions provided by the
+ * device parameter. Thus rendering and printing are unified and there is no intermediate
+ * "layout" structure.
+ * Internal rendering functions (render1, renderBLOCK, renderABLOCK) are (roughly) of type
+ * renderState -> renderState.
  *)
-fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyled}: DT.device)
-	   (format: F.format) : unit =
-    let (* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)
+fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
+    let val lineWidth = D.width device
+
+        (* output functions specialized to the device *)
+        val space = D.space device
+        val indent = space
+	fun newline () = D.newline device
+        val string = D.string device				   
+	val token = D.token device		      
+	fun flush () = D.flush device
+	fun renderStyled  (s: F.style, thunk: (unit -> renderState)): renderState =
+	    D.renderStyled (styleMap s, thunk)
+
+	(* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)
 	fun lineBreak n = (newline (); indent n)
 
 	(* flatRender : format -> unit
@@ -77,13 +110,13 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 	 *   rendered as a single space, like Soft line breaks.
 	 *   flatRender is called once when rendering a FLAT format. *)
 	fun flatRender format =
-	    let (* render0: format -> DT.renderState  (* always returns RS0 *)
+	    let (* render0: format -> renderState  (* always returns renderState0 *)
 		 *   -- recurses over the format structure *)
 		fun render0  (format: F.format): unit =
 		      (case format
 			 of F.EMPTY => ()
 			  | F.TEXT s => string s
-			  | F.TOKEN t => string (Token.raw t)
+			  | F.TOKEN t => string (F.tokenSize t)
 			  | F.BLOCK {elements, ...} => renderBLOCK elements
 			  | F.ABLOCK {formats, ...} => renderABLOCK formats
 			  | F.INDENT (_, fmt) => render0 fmt
@@ -120,7 +153,7 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 	    in render0 format
 	   end (* fun flatRender *)
 
-        (* render1: F.format -> DT.renderState -> DT.renderState
+        (* render1: F.format -> renderState -> renderState
 	 * the full rendering of a single format
 	 * Input renderState (cc, newlinep):
          *   cc: current column, incremented or reset after any output actions (string, space, lineBreak)
@@ -137,7 +170,7 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 	 *   -- INVARIANT: outerBlm <= cc
 	 *   -- INVARIANT: we will never print to the left of the outer block's blm (outerBlm)
 	 *   -- ASSERT: if newlinep is true, then cc = outerBlm *)
-	fun render1  (format: F.format) (inputState as (cc: int, newlinep: bool)) : DT.renderState =
+	fun render1  (format: F.format) (inputState as (cc: int, newlinep: bool)) : renderState =
 	      (case format
 	         of F.EMPTY =>  (* nothing printed, cc, newlinep passed through unchanged *)
 		      inputState
@@ -146,7 +179,7 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 		      (string s; (cc + size s, false))
 
 		  | F.TOKEN t =>  (* print the string unconditionally; move cc accordingly *)
-		      (string (T.raw t); (cc + T.size t, false))
+		      (string (F.tokenToString t); (cc + F.tokenSize t, false))
 
  		  | F.BLOCK {elements, ...} => (* establishes a new local blm = cc for the BLOCK *)
 		      renderBLOCK elements inputState
@@ -171,11 +204,11 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 		  | F.STYLE (style, fmt) =>
 		      renderStyled (style, (fn () => render1 fmt inputState)))
 
-        (* renderBLOCK : element list -> DT.renderState -> DT.renderState
+        (* renderBLOCK : element list -> renderState -> renderState
          *   rendering the elements of a BLOCK
 	 *   blm will be the caller's cc *)
         and renderBLOCK elements (inputState as (blm, newlinep)) =
-            let (* renderElements : element list -> DT.renderState -> DT.renderState *)
+            let (* renderElements : element list -> renderState -> renderState *)
 		fun renderElements nil rstate = rstate
 		  | renderElements (element::rest) (rstate as (cc, newlinep)) =
 		      (case element
@@ -211,16 +244,16 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 	 * producing no output; But this case should not occur, because (alignedBlock _ nil)
 	 * should yield EMPTY, not an ABLOCK with null formats list. *)
         and renderABLOCK alignment formats (inputState as (blm, newlinep)) =
-	      let (* renderFormats : format list -> DT.renderState -> DT.renderState
+	      let (* renderFormats : format list -> renderState -> renderState
 		   * Arguments:
 		   *   formats : format list -- the formats constituting the body (components) of the block
 		   *   (blm, newlinep) : renderstate, where
 		   *     blm : int -- the current column when renderBLOCK was called, which becomes the block's blm
 		   *     newlinep : bool -- flag indicating whether following immediately after a newline+indent
 		   * ASSERT: not (null formats) *)
-		  fun renderFormats (format::rest) ((cc, newlinep): DT.renderState) : DT.renderState =
-			let (* renderBreak : [cc]int * [m]int -> DT.renderState  -- m is the measure of following format *)
-			    val renderBreak : (int * int) -> DT.renderState =
+		  fun renderFormats (format::rest) ((cc, newlinep): renderState) : renderState =
+			let (* renderBreak : [cc]int * [m]int -> renderState  -- m is the measure of following format *)
+			    val renderBreak : (int * int) -> renderState =
 				  (case alignment
 				     of F.C => (fn (cc, m) => (cc, false))
 				      | F.H => (fn (cc, m) => (space 1; (cc+1, false)))
@@ -231,7 +264,7 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 					      then (space 1; (cc+1, false)) (* no line break, print 1 space *)
 					      else (lineBreak blm; (blm, true))))  (* triggered line break *)
 
-                            (* renderTail : format list -> DT.renderState *)
+                            (* renderTail : format list -> renderState *)
 			    fun renderTail nil rstate = rstate (* when we've rendered all the formats *)
 			      | renderTail (format :: rest) (cc, _) =  (* newlinep argument not used in this case! *)
 				  let val rstate1 = renderBreak (cc, M.measure format)
@@ -245,12 +278,14 @@ fun render ({lineWidth, space, indent, newline, string, token, flush, renderStyl
 	       in renderFormats formats inputState
 	      end (* fun renderABLOCK *)
 
-    in (* the initial "context" of a render is at the beginning of an outermost virtual block: newlinep is true, cc = 0 *)
-	(render1 format renderState0; flush ())  (* final renderState is discarded and output is flushed (redundant?) *)
+    in D.resetDevice device;
+      (* the initial "context" of a render is at the beginning of an outermost virtual block: newlinep is true, cc = 0 *)
+       render1 format renderState0;
+       flush ())  (* final renderState is discarded and output is flushed (redundant?) *)
    end (* fun render *)
 
 end (* top local *)
-end (* structure Render *)
+end (* functor RenderFn *)
 
 (* NOTES:
 
@@ -307,5 +342,19 @@ The problem is that for the ANSITERM device, the output stream, assumed to be an
 also carries the "device state" in the form of various ANSI terminal modes: FG color, BF, etc.)  This means
 that the output stream must be known to the device, which it may use for its internal purposes (e.g. in
 the definition of "styledRender").
+
+---------------
+Variability of Device model (e.g Plain vs ANSITerm devices)
+
+Is this handled by functorization wrt the Device structure, or by multiple cm files that load different
+Device and DeviceMode structures?
+
+What needs to be available to the Render structure?
+
+  * Device (mkDevice, space, etc.)
+    -- requires Device mode structure
+  * A style mapping that maps logical styles (strings) to Device-specific "modes", so it is defined in
+    a structure that depends on a specific DeviceMode structure. Is the actual style mapping an argument
+    of the main render function (and used to interpret style strings introduced in a format)?
 
 *)

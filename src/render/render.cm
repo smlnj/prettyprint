@@ -3,7 +3,10 @@
 
 Library
 
-  structure PrintFormat  (* printformat.sml *)
+  functor RenderFn       (* render.sml *)
+  functor PrintFormatFn  (* printformat.sml *)
+  structure PrintPlain   (* printformat.sml *)
+  structure PrintANSI    (* printformat.sml *)
 
 is
 
@@ -12,12 +15,11 @@ is
 render.sig         (* -> RENDER *)
 render.sml         (* -> Render *)
 printformat.sig    (* -> PRINT_FORMAT *)
-printformat.sml    (* -> PrintFormat *)
+printformat.sml    (* -> PrintFormatFn, PrintPlain, PrintANSI *)
 
 (* imports *)
 
-../base/base.cm              (* <- Style, Token *)
 ../formatting/formatting.cm  (* <- Format, Measure, Formatting *)
-../device/device.cm          (* <- DeviceType, PlainDevice, ANSITermDevice *)
+../device/device.cm          (* <- DEVICE, Device, Plain_Device, ANSITerm_Device *)
 
 $smlnj/basis/basis.cm

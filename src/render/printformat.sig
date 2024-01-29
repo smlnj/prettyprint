@@ -8,20 +8,17 @@
 signature PRINT_FORMAT =
 sig
     
+  structure Device: DEVICE
+
   (* Printing formats *)
 
-    val render : DeviceType.device -> Formatting.format -> unit
-
-    val renderStd : int -> Formatting.format -> unit
-        (* printing to stdOut, with line width as first argument *)
-
-    val renderANSI : int -> Formatting.format -> unit
+  val renderStdout : Device.stylemap * int -> Formatting.format -> unit
         (* printing to stdOut, with line width as first argument, supporing ANSITerm styles *)
 
-    val printFormat : Formatting.format -> unit
+  val printFormat : Device.stylemap -> Formatting.format -> unit
         (* print to stdOut with default lineWidth (80) *)
 
-    val printFormatNL : Formatting.format -> unit
+  val printFormatNL : Device.stylemap -> Formatting.format -> unit
 	(* like printFormat, but with a newline appended to the format *)
 
 end (* signature PRINT_FORMAT *)

@@ -1,6 +1,144 @@
-prettyprint/doc/term-notes.txt
+prettyprint/doc/device-notes.txt
 
-Notes on ANSI terminal "Device" implementation (for PrettyPrint Version 9.1)
+This note discusses the nature and use of _devices_ of various classes.
+Initially there are two devices classes: plain and ANSIterm, where the default
+device class is defined by the structure PlainDevice (src/device/device-plain.sml).
+
+Also, more generally, we discuss the general notion of a "device" and how they relate
+to the notion of a "style".  Version 4 covers the device/style notions used in
+Version 10.2 of the library.
+
+Since the plain device class is trivial (type style = unit), this note concentrates
+on the other, non-trivial, class of devices, implemented by ANSITermDevice.
+
+These notes cover ANSI terminal "device class" implementation for 
+for PrettyPrint Versions 9.1 through 10.2.
+
+ANSI terminal escape codes are taken as defined under "ANSI escape codes" in Wikipedia.
+
+The ANSI terminal is taken to be the prototypical (nontrivial) device.  The only other
+"device" we have is the trivial device without styles (or supporting only a single default
+style).
+
+========================================================================================== 
+General Observations
+==========================================================================================
+An ANSI terminal has a state that can be viewed as a set/sequence of "modes". This state
+controls the rendering of text (and the BG color against which text is rendered).
+[So the terminal device can be modeled as an _object_ containing functions that act on
+this internal state.]
+
+Does it make sense to output ANSI terminal transition codes to a file?  I Assume not!
+
+========================================================================================== 
+Review of ANSI terminal codes and functions
+==========================================================================================
+
+This section reviews the "style constructors" of the ANSITerm structure
+(smlnj-lib/Util/ansi-term.sml), the ANSI escape codes they translate to, and their
+functions [from the ANSI escape codes Wikipedia page,
+https://en.wikipedia.org/wiki/ANSI_escape_code].
+
+Many of the ANSI escape codes have to do with cursor positioning (useful for writing
+a "visual" text editor like emacs), but here we are only interested in the subset of
+codes (the SGR - "Select Graphic Rendition" codes) that control the display attributes for
+rendering text characters.
+
+Color codes (c):
+
+Black	     0
+Red	     1
+Green	     2
+Yellow 	     3
+Blue	     4
+Magenta	     5
+Cyan	     6
+White	     7
+Default	     9
+
+Attribute transition command codes (specified for ANSITerm.style):
+
+RESET        0         set to default state
+FG c	     30+c      foreground color c
+BG c	     40+c      background color c
+BF 	     1
+DIM	     2
+NORMAL	     22        reset from bold or dim only to default
+UL	     4
+UL_OFF	     24
+BLINK	     5
+BLINK_OFF    25
+REV	     7	       reverse; swap FG and BG colors
+REV_OFF	     27
+INVIS	     8         conceal
+INVIS_OFF    28        reveal
+
+The actual terminal command strings can combine multiple command codes. For instance
+the command string
+
+   "\027[1;31m"    (027 = octal 33 = escape character)
+
+specifies boldface (BF = 1), followed by red foreground (FG Red = 31).
+
+Note that the attribute codes serve as commands to change the state of the terminal
+by setting or resetting attribute values.
+
+The attribute set for a terminal can be classified as a tuple:
+
+fg: color       [Default (terminal dependent, typically Black); FG color, RESET]
+bg: color       [Default (terminal dependent, typically White); BG color, RESET]
+bold: bool      [false; BF, NORMAL, RESET]
+dim: bool       [false; DIM, NORMAL, RESET]
+underline: bool [false; UL, UL_OFF, RESET]
+blinking: bool	[false; BLINK, BLINK_OFF, RESET]
+reverse*: bool	[false; REV, REV_OFF, RESET] 
+conceal: bool	[false; INVIS, INVIS_OFF, RESET]
+
+There are default FG and BG colors (e.g. typically white/black, or black/white)  
+But note that the Default color can have different values, depending on context, i.e. whether
+the color is foreground or background, e.g., for foreground, Default = Black, while for
+background, Default = White (or the terminal's current background color).  Thus the
+command "BG Default" will set the background to the terminal's default background color.
+while "FG Default" will set the text to the terminal's default foreground color.
+
+Some attribute commands are "orthogonal", such as [BF, FG Red], where the effect of both
+can co-exist. Others are not orthogonal, such as [FG Red, FG Green], where the
+effect of the later command overrides the effect of the earlier one.  The effect of
+other combinations may be terminal dependend (e.g. [FG Green, INVIS]). In general,
+interactions of commands depend on the terminal emulation and may be unexpected or hard
+to predict.
+
+* reverse (REV) is not really an attribute, since it is redundant given the actual
+foreground and background.
+
+[Editorial: BLINK, INVIS (conceal) are not very useful in prettyprinting and therefore should be
+avoided. BG and REV are of dubious utility. Thus when prettyprinting, it is probably best to
+restrict oneself to using bold, dim, underline, and foreground (only) color changes.]
+
+
+========================================================================================== 
+Some Principles
+==========================================================================================
+
+The modes of a terminal device are "additive".  A style specification can "add" bold to
+the existing enabled text attributes, but there is no style that removes or cancels the
+bold attribute, and similarly for the dim, underlined, and blinking attributes.
+
+But color attributes (foreground and background) are not additive. A new color attibute
+imposed by a style will override the existing color attribute (for foreground or
+background).
+
+The only way that an attribute can be reversed or reset is to leave the "span" or "scope"
+of the attribute when leaving the corresponding span of a style that sets that attribute.
+
+This means an attribute like boldface cannot be (locally) cancelled within the scope
+of a nested style.  If a style specifies boldface, then all the text within the span
+or scope of that style will be bold.
+
+[This is partly justified by the fact that ANSITerm has no mode transition command for
+turning off the bold attribute. We choose to treat the other non-color attribues (dim,
+underlined, blinking), the same, even though ANSITerm provides commands for turning them
+off (locally).]
 
 ========================================================================================== 
 Version 1: tmode -- a terminal mode type
@@ -11,7 +149,7 @@ Version 1: tmode -- a terminal mode type
 Terminal mode is a record of modes that a ANSIterm may be in, according to the smlnj-lib
 ANSITerm structure.
 
-The individual modes are:
+The individual "modes" or "attributes" are:
 
 fg : color  -- foreground color: default Black
 bg : color  -- background color: default White
@@ -219,11 +357,178 @@ The mkDevice functions have the type
 where the outstream is the outstream to be used for output, and the
 int is the (soft) lineWidth limit.
 
-
-
-
-
-
-
 ==========================================================================================
+Version 4 (Prettyprint version 10.2)
+==========================================================================================
+We need two notions of style: _logical_ and _physical_.
+
+* Logical styles
+
+Logical styles are universally represented by strings, e.g. "keyword". The set of logical
+styles is determined by the writer of a formatter and this set is designed to be
+appropriate to the subject matter (i.e. type) that is being formatted.
+
+These logical style strings appear in the generated formats (as arguments of the STYLE
+constructor).
+
+* Physical (or "device") styles
+
+Physical styles are associated with a device (more precisely a device class), like ANSI
+terminal, and they describe the text stylings that that device supports.  Thus if ANSITerm
+is a device (module), then the type ANSITerm.style determines what "physical" styles that
+device is capable of (e.g. bold face, red, flashing).  In the case of an ANSI terminal
+device, these correspond to physical modes (state) of the terminal that modify the
+rendering of text.
+
+* Rendering logical styles
+
+When rendering a format to a device, logical styles have to be translated to
+device-specific physical styles.  This translation is represented by a function
+mapping logical styles (strings) to physical styles for the device being rendered to.
+
+* Nested ("cascading") styles
+
+Logically, a styled format can contain other styled formats within them. This assumes
+that the corresponding physical styles are "additive" or consistent.  For instance,
+with a bold-face styled format we might in addition impose a "red-face" on some subformat.
+
+It is possible that for some device (class), some physical styles might be inconsistent.
+(e.g. it might not be possible for text to be both bold and italic).
+
+We generally assume that physical styles are "orthogonal" and don't conflict with one
+another.
+
+There is also the question about whether an inner style might "cancel" the inherited
+style (the next innermost style), or perhaps all inherited styles.
+
+If some nested (physical) styles are incompatible, then the effect of such combinations
+of styles may be undefined or unexpected.  (What exactly will go wrong?)
+
+If a (physical) style can "cancel" previously imposed styles (e.g. NOSTYLE for ANSI term),
+one also needs to consider whether all inherited styles are cancelled, or perhaps only
+some of them.
+
+Another issue is that we want styles to a applied on entering a styled format, and then
+undone, or reversed, upon leaving that format. This means that (logical) styles need to be
+cancelled when leaving the "scope" of the style.
+
+-----------
+As in version 10.1, devices are values.
+
+When rendering a format, a device is passed to handle:
+  (1) output of characters, and (text, breaks, indentation)
+  (2) implementation of physical (i.e. device) styles
+
+Since the format being rendered contains _logical_ styles, rendering also requires
+a map from _logical_ style strings to physical/device styles.
+
+-----------
+The renderStyled function requires that physical styles can be applied (during
+execution of the thunk argument) and then "cancelled" once the thunk has finished
+being executed (being "forced").
+
+-----------
+To make it possible to define a map from logical styles (strings) to physical (device)
+styles, the structure implementing a device class must export a concrete device style
+type.
+
+Given that logical styles can be nested (can "cascade"), the physical styles they map to
+must also "cascade".  What does this mean?
+
+Suppose we have logical styles "red" and "green", and consider the format:
+
+   STYLE ("red", hblock [text "abc", STYLE ("green", text "def"), text "ghi"])
+
+and supposed the "red" and "green" logical styles map to the corresponding colors for
+an ANSI terminal. Then we expect "abc" and "ghi"  to be rendered in red, while "def" is
+rendered in green. That is, we ssume that the inner green style should _override_ the
+outer red style, rather than trying to _blend_ the red and green colors.
+
+But what if we replace "red" and "green" by "italic" and "bold", and what if the device
+supports "bold italic" rendering of text?  In that case, the inner "bold" style could
+be combined or blended with the outer italic style, resulting in "italic bold" styling
+of the "def" text.
+
+In light of this, it is not clear how to combine overlapping, nested styles. Should inner
+styles override outer styles, or should there be a systematic way of "blending" physical
+styles.
+
+Even assuming an overriding discipline for nested styles, it seems clear that the
+overridden style should be restored when leaving the span of the inner style (so in the
+example, "ghi" should be rendered as red).  So when we "cancel" the inner style, we must
+simultaneously "restore" the outer (or "inherited" or "cascading") style.
+
+A general, "device independent" implementation of the overriding discipline seems to
+require an active restoration process to restore all outer stylings on leaving the span
+of a nested style.  In the case of an ANSI terminal, we could save the state (modes) of
+the terminal on entering a style scope and restore that state on leaving the scope.
+In this special case, there may be some style modes that can simply be "cancelled"
+irrespective of inherited styles (i.e. there might be shortcuts to restoration of
+inherited styles).
+
+
+* Cascading
+
+PP styles are very simple compared with HTML cascading style sheets (CSS). But there is
+still an issue of how "cascading" of nested styles works, at least if we allow structured
+formats to be styled, which introduces the possibility that a styled format may contain
+internal/nested styled formats.
+
+An alternative would be to restrict styles to atomic text formats, in which case the
+style attribute could be associated with the TEXT format constructor instead of being
+an orthogonal format modifier constructore (e.g. STYLE).
+
+What happens when outer and inner styles are specified
+
+
+   style (X, <a... style (Y, <b...>) c...>)
+
+We assume that style X applies to the a... and c... portions of the format argument
+(deliniated by <...>).
+
+What style applies to the format <b...>?  Is it simply Y, or is it a blending or merger
+of X and Y?  It is in a blending, what are the rules for blending?
+Presumably blending is performed at the device style level.  For instance, style elements
+(or "modes") red and italic could be combined to produced red italic text.  One could also
+combine type face styles, e.g. bold and italic.  But we probably do not want to combine
+color styles (e.g. red and green producing brown text).
+
+Dependence on typeface and associated fonts
+--------------------------------------------
+
+[ANSI terminal] Whether italic and bold modes can be "blended" to get bold italic text
+may depend on whether the terminal typeface comes with a bold italic font.
+
+NOTE: italic is generally not supported by ANSI terminal emulators
+
+
+--------------------------------------------------------------------------------
+Experiments with ANSI terminals (aquamacs (E) macOS terminal (M), Ubuntu xterm (U))
+
+Q: what code is sent for the NORMAL transition?
+   RESET sends the 0 code (for the reset function).
+
+Some transitions (BLINK, UL, REV, INVIS) have corresponding OFF transition commands to
+undo them specifically.  Other "modes" depend on the RESET transition to undo themselves.
+
+Ubuntu xterm:
+  - NORMAL undoes BF, DIM; but not FG color, UL, REV, BLINK (expected)
+  - RESET undoes BF, DIM, UL, REV, INVIS restores default FG, BF colors (expected)
+  - [REV, FG Green] produces green background, black text. After a REV command, the
+    effects of FG and BG are reversed.
+
+macOS terminal:
+  - BF produces bold face, but also turns FG color to maroon and resets FG Default color
+    to maroon.  Have to use FG Black to get black boldface.
+  - REV and INVIS seem to be implemented
+  - After a REV, the effects of FG and BG are reversed.
+ 
+
+aquamac:
+  - effect of bold is very slight
+  - REV by itself has the same effect as FG Red and does not affect the background color 
+  - INVIS, REV not (properly) implemented, but these commands may interact with and change
+    the behavior of other commands (e.g.[FG Green, REV] changes the FG to Red and leaves
+    the BG color unchanged; [FG Green, INVIS] does not change the FG color).
+   
 
