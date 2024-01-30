@@ -19,5 +19,6 @@ ansiterm-device.sml (* <- structure ANSITerm_Device for ANSI terminals *)
 
 (* imports *)
 
+../base/base.cm        (* Style, Token *)
 $/basis.cm
 $/smlnj-lib.cm      (* <- ANSITerm, (& an unrelated Format!) *)

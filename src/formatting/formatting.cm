@@ -17,4 +17,6 @@ formatting.sml       (* -> Formatting: exports abstract format type *)
 
 (* imports *)
 
+../base/base.cm
+
 $smlnj/basis/basis.cm

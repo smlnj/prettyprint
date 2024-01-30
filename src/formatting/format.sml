@@ -87,7 +87,7 @@ datatype format =
       (* empty format; rendering this produces no output, an identity for format compositions in blocks *)
   | TEXT of string
       (* atomic format with string content*)
-  | TOKEN of Token.token
+  | TOKEN of token
       (* atomic format with token content*)
   | BLOCK of {elements: element list, measure: int}
       (* "basic" or "ad hoc" blocks with explicit break (BRK) elements interleaved with format (FMT) elements *)

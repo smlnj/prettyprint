@@ -8,9 +8,9 @@
 
 structure Plain_Mode =
 struct
-  type mode = unit end
-  type stylemap = string -> mode
-  val nullStylemap = (fn (s: Format.style) => ())
+  type mode = unit
+  type stylemap = Style.style -> mode  (* string -> mode *)
+  val nullStylemap : stylemap = fn (style: Style.style) => ()
 end
 
 structure Plain_Device : DEVICE =
@@ -20,7 +20,7 @@ structure Mode = Plain_Mode
 
 type device =
   {outstream : TextIO.outstream,  (* outstream for an ANSI terminal (emulation) *)
-   lineWidth : int}  (* INVARIANT lineWidth > 0 *)
+   width : int}  (* INVARIANT width > 0 *)
 
 (* mkDevice : TextIO.outstream -> int -> DT.device *)
 fun mkDevice (outstream : TextIO.outstream) (lineWidth: int) : device =
@@ -29,13 +29,17 @@ fun mkDevice (outstream : TextIO.outstream) (lineWidth: int) : device =
 fun resetDevice ({outstream, ...}: device) =
     TextIO.flushOut outstream
 
+fun width ({width, ...}: device) = width
+
+exception DeviceError (* redundant -- never raised *)
+
 (* space : device -> int -> unit *)
 (* output some number of spaces to the device *)
 fun space ({outstream, ...}: device) (n: int) =
     TextIO.output (outstream, StringCvt.padLeft #" " n "")
 
 (* indent : device -> int -> unit *)
-(* output an indentation of the given width to the device *)
+(* output an indentation of the given number of spaces *)
 val indent = space
 
 (* newline : device -> unit *)
@@ -48,7 +52,8 @@ fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
 (* token : device -> T.token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: T.token) = string (T.raw t)
+fun token ({outstream,...}: device) (t: Token.token) =
+    TextIO.output (outstream, Token.string t)
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)
@@ -59,5 +64,4 @@ fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 fun 'r renderStyled (device: device) (mode: Mode.mode, renderThunk : unit -> 'r) : 'r =
      renderThunk ()
 
-end (* top local *)
 end (* structure Plain_Device *)

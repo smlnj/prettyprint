@@ -1,6 +1,8 @@
 (* device.sig *)
 
-(* signature for device classes (ANSITerm, Plain) *)
+(* signature for device classes (ANSITerm, Plain)
+ *   depends on: Token (src/base/token.sml)
+ *)
 
 signature DEVICE =
 sig
@@ -8,13 +10,9 @@ sig
   structure Mode :
     sig
       type mode
-      type stylemap
+      type stylemap = Style.style -> mode
       val nullStylemap : stylemap
     end
-
-  type stylemap
-
-  val nullStylemap
 
   type device
 	     
@@ -34,7 +32,7 @@ sig
 
   val string : device -> string -> unit
 
-  val token : device -> Format.token -> unit  (* Format.token? *)
+  val token : device -> Token.token -> unit
 
   val flush : device -> unit
 

@@ -12,13 +12,14 @@ sig
 
   (* Printing formats *)
 
-  val renderStdout : Device.stylemap * int -> Formatting.format -> unit
-        (* printing to stdOut, with line width as first argument, supporing ANSITerm styles *)
+  val renderStdout : Device.Mode.stylemap -> int -> Formatting.format -> unit
+        (* printing to stdOut, with line width as 2nd argument, supporing
+         * ANSITerm styles through the stylemap argument *)
 
-  val printFormat : Device.stylemap -> Formatting.format -> unit
+  val printFormat : Device.Mode.stylemap -> Formatting.format -> unit
         (* print to stdOut with default lineWidth (80) *)
 
-  val printFormatNL : Device.stylemap -> Formatting.format -> unit
+  val printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit
 	(* like printFormat, but with a newline appended to the format *)
 
 end (* signature PRINT_FORMAT *)

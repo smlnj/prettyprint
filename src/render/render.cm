@@ -19,6 +19,7 @@ printformat.sml    (* -> PrintFormatFn, PrintPlain, PrintANSI *)
 
 (* imports *)
 
+../base/base.cm              (* <- Style, Token *)
 ../formatting/formatting.cm  (* <- Format, Measure, Formatting *)
 ../device/device.cm          (* <- DEVICE, Device, Plain_Device, ANSITerm_Device *)
 

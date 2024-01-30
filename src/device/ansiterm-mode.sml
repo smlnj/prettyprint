@@ -62,9 +62,9 @@ datatype attribute
 
 type mode = attribute list
 
-type stylemap = string -> mode
+type stylemap = Style.style -> mode  (* = string -> mode *)
 
-fun nullStylemap (s: string) : stylemap = (nil: mode)
+fun nullStylemap (s: Style.style) : mode = nil
 
 end (* top local *)
 end (* structure ANSITermMode *)

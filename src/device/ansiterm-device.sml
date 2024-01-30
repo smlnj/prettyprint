@@ -4,6 +4,7 @@ structure ANSITerm_Device : DEVICE =
 struct
 
 local
+  structure T = Token
   structure AT = ANSITerm  (* smlnj-lib/Util/ansi-term.sml *)
 in
 
@@ -32,7 +33,7 @@ type termState =
 
 val baseState : termState =
     {fg = AT.Default,  (* default foreground color *)
-     bg = AT.default,  (* default background color *)
+     bg = AT.Default,  (* default background color *)
      bold = false,
      dim = false,
      underlined = false,
@@ -53,7 +54,7 @@ val baseState : termState =
  *)
 
 
-type commands = AT.style list
+type commands = AT.style list  (* an AT.style is actually an attribute setting command *)
 
 type stateStack = termState list ref
 
@@ -66,7 +67,7 @@ type device =
    lineWidth : int}  (* INVARIANT lineWidth > 0 *)
 	       
 fun clearOutstream (outstream : TextIO.outstream) =
-    (AT.setStyle (outstream, [AT.RESET];
+    (AT.setStyle (outstream, [AT.RESET]);
      TextIO.flushOut outstream)			    
 		  
 (* mkDevice : TextIO.outstream -> int -> device *)
@@ -94,42 +95,42 @@ exception DeviceError
 (* delta : Mode.mode * termState -> commands * termState
  * layer an Mode.mode to change the current state (hd (!stateStack)) to new state, which
  * will be pushed onto the stateStack, plus commands to set the terminal to this new state *)
-fun delta (mode : Mode.mode, {fg,bf,bold,dim,underlined,blinking} : termState) : commands * termState =
+fun delta (mode : Mode.mode, {fg,bg,bold,dim,underlined,blinking} : termState) : commands * termState =
     let fun foo (nil, commands, fg, bg, bold, dim, underlined, blinking) =
 	    (rev commands,
 	     {fg = fg, bg = bg, bold = bold, dim = dim, underlined = underlined, blinking = blinking})
-          | foo (ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> fg
-	     then foo (rest, FG c :: commands, c, bg, bold, dim, underlined, blinking)
+	     then foo (rest, AT.FG c :: commands, c, bg, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> bg
-	     then foo (rest, BG c :: commands, fg, c, bold, dim, underlined, blinking)
+	     then foo (rest, AT.BG c :: commands, fg, c, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Bold :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.BoldFace :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not bold
-	     then foo (rest, BF :: commands, fg, bg, true, dim, underlined, blinking)
+	     then foo (rest, AT.BF :: commands, fg, bg, true, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not dim
-	     then foo (rest, DIM :: commands, fg, bg, bold, true, underlined, blinking)
+	     then foo (rest, AT.DIM :: commands, fg, bg, bold, true, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not underlined
-	     then foo (rest, UN :: commands, fg, bg, dim, true, blinking)
+	     then foo (rest, AT.UL :: commands, fg, bg, bold, dim, true, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Mode.Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not blinking
-	     then foo (rest, BLINK :: commands, fg, bg, bold, dim, underlined, true)
+	     then foo (rest, AT.BLINK :: commands, fg, bg, bold, dim, underlined, true)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-    in foo (mode, nil, fg, bf, bold, dim, underlined, blinking)
+    in foo (mode, nil, fg, bg, bold, dim, underlined, blinking)
     end
 	
 (* pushState : device -> Mode.mode -> unit *)
-fun pushState ({outstream, stateStack} : device) (mode : Mode.mode) =
+fun pushState ({outstream, stateStack, ...} : device) (mode : Mode.mode) =
     let val (commands, newState) =
 	    (case !stateStack
-	      of nil => (nil, baseState))
+	      of nil => (nil, baseState)
 	        | topState :: rest => delta (mode, topState))
      in stateStack := newState :: !stateStack;
         AT.setStyle (outstream, commands)  (* change terminal state correspondingly *)
@@ -138,16 +139,16 @@ fun pushState ({outstream, stateStack} : device) (mode : Mode.mode) =
 (* restoreState : device -> unit 
  * pop and restore and the device state from the stateStack
  * ASSERT: length stateStack >= 1 *)
-fun restoreState ({outstream, stateStack} : device) : unit = 
-    (case stateStack
+fun restoreState ({outstream, stateStack, ...} : device) : unit = 
+    (case !stateStack
        of nil => raise DeviceError
         | state :: rest => 
-	    let val {fg, bg, bf, dim, underlined, blinking} = state
+	    let val {fg, bg, bold, dim, underlined, blinking} = state
 		val commands = 
 		    List.concat
 		      [if fg = AT.Default then nil else [AT.FG fg],
-		       if gb = AT.Default then nil else [AT.BG bg],
-		       if bf then [AT.BF] else nil,
+		       if bg = AT.Default then nil else [AT.BG bg],
+		       if bold then [AT.BF] else nil,
 		       if dim then [AT.DIM] else nil,
 		       if underlined then [AT.UL] else nil,
 		       if blinking then [AT.BLINK] else nil]
@@ -177,7 +178,7 @@ fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
 (* token : device -> T.token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: T.token) = string (T.raw t)
+fun token ({outstream,...}: device) (t: T.token) = TextIO.output (outstream, T.string t)
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)

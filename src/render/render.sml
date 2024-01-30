@@ -52,42 +52,43 @@ local
   structure F = Format
   structure M = Measure
 
-  exception RenderError
-  fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderError)
-
 in
 
 (* There is just one exported rendering function: render.
  * The flatRender function is defined and used within the render function, and is not exported. *)
 
-(* exported *)
-type mode = D.Mode.mode
-(* styleMap -- mappings from logical styles (strings) to device-specific modes (physical styles) *)
-type stylemap = D.Mode.stylemap
+(* exporting Device structure (for types Device.Mode.stylemap and Device.device *)
+structure Device = D
+
+(* internal types *)
 
 (* renderState: the state maintained during rendering.
  *   int: the current indentation or starting column
- *   bool: whether the render immediately follows a newline + indentation *)
+ *   bool: whether the render immediately follows a newline + indentation
+ *)
 type renderState = int * bool
 
 (* initial render state: at the beginning of a line, assuming following a newline *)
 val renderState0 : renderState = (0, true)
 
-(* render : styleMap * D.device -> format -> unit
- *   styleMap: mapping from logical styles (F.style) to device modes
+exception RenderError  (* diagnostic exception; should never be raised? *)
+fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderError)
+
+(* render : stylemap * D.device -> format -> unit
+ *   stylemp: mapping from logical styles (Style.style) to device modes (D.Mode.mode)
  *   device: determines outstream and its associated lineWidth
  *   format: format  -- the format to be rendered and printed
- * The device, and hence the outstream and line width, are, assumed fixed during the rendering of the given format.
- * The top-level render function decides where to conditionally break lines, and how much
- * indentation should follow each line break, based on the line space available (the difference
- * between the currend column and the device line width). In this version (10.2), the render
- * function also prints the content and formatting, using the output functions provided by the
- * device parameter. Thus rendering and printing are unified and there is no intermediate
+ * The device, and hence the outstream and line width, are, assumed fixed during the rendering
+ * of the given format. The top-level render function decides where to conditionally break lines,
+ * and how much indentation should follow each line break, based on the line space available
+ * (the difference between the currend column and the device line width). In this version (10.2),
+ * the render function also prints the content and formatting, using the outstream provided
+ * by the device parameter. Thus rendering and printing are unified and there is no intermediate
  * "layout" structure.
  * Internal rendering functions (render1, renderBLOCK, renderABLOCK) are (roughly) of type
  * renderState -> renderState.
  *)
-fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
+fun render (stylemap: D.Mode.stylemap, device: D.device) (format: F.format) : unit =
     let val lineWidth = D.width device
 
         (* output functions specialized to the device *)
@@ -97,8 +98,8 @@ fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
         val string = D.string device				   
 	val token = D.token device		      
 	fun flush () = D.flush device
-	fun renderStyled  (s: F.style, thunk: (unit -> renderState)): renderState =
-	    D.renderStyled (styleMap s, thunk)
+	fun renderStyled  (style: Style.style, thunk: (unit -> renderState)) : renderState =
+	    D.renderStyled device (stylemap style, thunk)
 
 	(* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)
 	fun lineBreak n = (newline (); indent n)
@@ -116,7 +117,7 @@ fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
 		      (case format
 			 of F.EMPTY => ()
 			  | F.TEXT s => string s
-			  | F.TOKEN t => string (F.tokenSize t)
+			  | F.TOKEN t => string (Token.string t)
 			  | F.BLOCK {elements, ...} => renderBLOCK elements
 			  | F.ABLOCK {formats, ...} => renderABLOCK formats
 			  | F.INDENT (_, fmt) => render0 fmt
@@ -179,7 +180,7 @@ fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
 		      (string s; (cc + size s, false))
 
 		  | F.TOKEN t =>  (* print the string unconditionally; move cc accordingly *)
-		      (string (F.tokenToString t); (cc + F.tokenSize t, false))
+		      (string (Token.string t); (cc + Token.size t, false))
 
  		  | F.BLOCK {elements, ...} => (* establishes a new local blm = cc for the BLOCK *)
 		      renderBLOCK elements inputState
@@ -281,7 +282,7 @@ fun render (styleMap: styleMap, device: D.device) (format: F.format) : unit =
     in D.resetDevice device;
       (* the initial "context" of a render is at the beginning of an outermost virtual block: newlinep is true, cc = 0 *)
        render1 format renderState0;
-       flush ())  (* final renderState is discarded and output is flushed (redundant?) *)
+       flush ()  (* final renderState is discarded and output is flushed (redundant?) *)
    end (* fun render *)
 
 end (* top local *)
