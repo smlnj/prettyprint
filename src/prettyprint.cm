@@ -15,7 +15,7 @@ is
 (* imports *)
 $smlnj/basis/basis.cm
 
-base/base.cm              (* <- Token, Style *)
-formatting/formatting.cm  (* <- Formatting *)
-render/render.cm          (* <- PrintPlain, PrintANSI *)
+base/base.cm              (* -> Token *)
+formatting/formatting.cm  (* -> Formatting *)
+render/render.cm          (* -> PrintPlain, PrintANSI *)
 

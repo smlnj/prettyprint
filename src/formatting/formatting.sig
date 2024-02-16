@@ -63,11 +63,18 @@
  *     PrettyPrint -> Formatting
  *     render and printing functions, and getLineWidth moved from Formatting (PrettyPrint) to printformat.sml
  *
- * Version 10.2 [2024.1.26]
- *   Re-exports style and token types (now) defined in Format (for completeness?)
+ * Version 10.2 [2024.2.13]
+ *   Removed:
+ *     setLineWidth   -- lineWidth is now a fixed attribute of a device
+ *     resetLine
+ *     getLineWidth
+ *     render
+ *     printFormat    -- moved to PRINT_FORMAT
+ *     printFormatLW
+ *     printFormatNL
  *)
 
-(* Defines: signature FORMATTING *)
+(* Defines: signature FORMATTING, references Token *)
 
 signature FORMATTING =
 sig
@@ -75,10 +82,6 @@ sig
   (* types *)
 
     type format     (* abstract, defined in Format structure *)
-
-    type style = Format.style  (* "logical" styles to be interpretted during rendering (styleMap) *)
-		     
-    type token = Format.token
 
   (* break: used to separate format elements of a block
    *   space and conditional/unconditional line breaks, and a Null break for completeness *)
@@ -221,6 +224,6 @@ sig
     val hvblock : format list -> format
 	(* acts as hblock if it fits, otherwise as vblock *)
 
-    val styled : style -> format -> format
+    val styled : string -> format -> format
 
 end (* end FORMATTING *)

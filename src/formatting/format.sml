@@ -29,36 +29,20 @@
  * -- rename Break constructor names: HardLine -> Line, SoftLine -> Soft, NullBreak -> Null
  *
  * Version 10.2 [2024.1.26]
- *   Added
- *     type style = string  -- the unique type for all "logical" styles (e.g. "keyword")
- *       eliminating the need for the Style structure
- *     type token with functions mkToken, tokenSize, tokenToString
- *       eliminating the need for the Token structure
+ *   (logical) style is represented by string (no style type). We don't export a Format.style
+ *     type because then device structures would depend on Format. It is not worth having a
+ *     trivial Style structure to contain a "style = string" definition.
+ *   Token remains separate (defined in base/token.sml, accessed via base.cm) and is referenced
+ *     here but not re-exported. Device structures will depend on Token.
 *)
 
 (* structure Format:
- *   no signature  (hence no type abstraction)
- *   exports datatypes: alignment, break, element, token, format, style
+ *   No signature  (hence no type abstraction).
+ *   Exports datatypes: alignment, break, element, and format as concrete types
  *)
 
 structure Format =
 struct
-
-(* the unique type for all logical styles; which are to be interpreted during rendering via
- * a styleMap function *)
-type style = string
-
-(* token -- sized special strings (e.g. utf8), not abstract *)
-type token = string * int
-
-(* mkToken : string * int -> token *)
-fun mkToken (s: string, n: int): token = (s,n)
-
-(* tokenSize : token -> int *)
-fun tokenSize ((_,n): token) = n
-
-(* tokenToString : token -> string *)
-fun tokenToString ((s,_): token) = s
 
 (* datatype alignment: alignment modes for "aligned" blocks *)
 datatype alignment  (* the alignment property of "aligned" blocks *)
@@ -87,7 +71,7 @@ datatype format =
       (* empty format; rendering this produces no output, an identity for format compositions in blocks *)
   | TEXT of string
       (* atomic format with string content*)
-  | TOKEN of token
+  | TOKEN of Token.token
       (* atomic format with token content*)
   | BLOCK of {elements: element list, measure: int}
       (* "basic" or "ad hoc" blocks with explicit break (BRK) elements interleaved with format (FMT) elements *)
@@ -99,8 +83,8 @@ datatype format =
       (* soft indent the format n spaces, sinilar to Hughes's nest *)
   | FLAT of format
       (* render (and measure) the format as flat *)
-  | STYLE of style * format
-      (* render with (layered) logical style *)
+  | STYLE of string * format
+      (* render with the (layered/cascading) logical style designated by the string *)
 
   (* conditional choice of formats *)
   | ALT of format * format

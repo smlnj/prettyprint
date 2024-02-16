@@ -1,4 +1,4 @@
-(* smlnj-lib/PrettyPrint/src/prettyprint.sml *)
+(* PrettyPrint/src/formatting/formatting.sml *)
 
 (* New Prettyprinter, main interface
  * Version 7:
@@ -68,10 +68,11 @@
  *
  * Version 10.2 [2024.1.26]
  *   Added
- *     type style = Format.style = string  -- the unique type for all "logical" styles (e.g. "keyword")
- *     type token (defined in Format now)
+ *     type style = string  -- the unique type for all "logical" styles (e.g. "keyword")
+ *   Uses
+ *     Token (base/token.sml via base/base.cm)
  *
- *   Thus eliminating the need for the Style and Token structures.
+ *   Thus eliminating the need for the trivial Style structure.
  *)
 
 (* Defines:
@@ -85,13 +86,12 @@ local
 
   structure F = Format
   structure M = Measure
+  structure T = Token
 
 in
 
-(* types from the Format structure re-exported here *)
+(* type format (= Format.format) re-exported as an abstract type *)
 type format = F.format
-type token = F.token
-type style = F.style
 
 datatype alignment = datatype F.alignment
 datatype element = datatype F.element
@@ -320,30 +320,37 @@ fun indent (n: int) (fmt: format) =
        of F.EMPTY => F.EMPTY
         | _ => F.INDENT (n, fmt))
 
-(* styled : F.style * format -> format *)
-fun styled (style: F.style) (format: format) = F.STYLE (style, format)
+(* styled : string -> format -> format *)
+fun styled (style: string) (format: format) = F.STYLE (style, format)
 
 end (* top local *)
 end (* structure Formatting *)
 
 (* NOTES:
 
-1. We have sequence formating funtions that act on lists of arbitrary values (of a given type),
-   with a supplied formatting function for the element type, and other functions that act on lists of formats.
+1. [DBM: 2022.10.17]
+   We have sequence formating functions that act on lists of arbitrary values (of a given type),
+   with a supplied formatting function for the element type, and other functions that act on lists
+   of formats.
 
    The first sort can easily be simulated by translating the value list into a format list
-   by mapping the formatter over the values.  This seems to be preferabel, so the former sequencing
+   by mapping the formatter over the values.  This seems to be preferable, so the former sequencing
    functions (formatSeq, formatClosedSeq, tuple, list, alignedList) can be viewed as redundant.
-   [DBM: 2022.10.17]
 
+2. [DBM: 2022.10.24]
    basicBlock and alignedBlock revised so that a block with a single format member reduces to
-   that format.  This prevents trivial nesting of blocks nesting of blocks, e.g. block(block(block(...))).
-   [DBM: 2022.10.24]
+   that format.  This prevents trivial nesting of blocks nesting of blocks,
+   e.g. block(block(block(...))).
 
-   8.4: basicBlock -> block, alignedBlock -> aBlock, and other renamings: see Version 8.4
+3. [DBM: 2023.3.1; V 8.4]
+   basicBlock -> block, alignedBlock -> aBlock, and other renamings: see Version 8.4
    changes note at beginning of this file. Some of these changes were suggested by
    JHR. Thinking about separating the render and printing functions into a separate
    structure and possilby parameterizing wrt a "device" record that would contain printing
    functions for strings, spaces, and newlines, and possibly the lineWidth parameter [See Version 9.1].
-   [DBM: 2023.3.1]
+
+4. [DBM: 2024.2.15; V 10.2]
+   Rendering is "device-based", except for the HTML renderer. Devices do not affect "formatting",
+   which is independent of rendering and requires only structures Format, Formatting.
+
 *)

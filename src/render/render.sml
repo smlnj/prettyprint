@@ -75,7 +75,7 @@ exception RenderError  (* diagnostic exception; should never be raised? *)
 fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderError)
 
 (* render : stylemap * D.device -> format -> unit
- *   stylemp: mapping from logical styles (Style.style) to device modes (D.Mode.mode)
+ *   stylemp: mapping from logical styles (string) to device modes (D.Mode.mode)
  *   device: determines outstream and its associated lineWidth
  *   format: format  -- the format to be rendered and printed
  * The device, and hence the outstream and line width, are, assumed fixed during the rendering
@@ -98,7 +98,7 @@ fun render (stylemap: D.Mode.stylemap, device: D.device) (format: F.format) : un
         val string = D.string device				   
 	val token = D.token device		      
 	fun flush () = D.flush device
-	fun renderStyled  (style: Style.style, thunk: (unit -> renderState)) : renderState =
+	fun renderStyled  (style: string, thunk: (unit -> renderState)) : renderState =
 	    D.renderStyled device (stylemap style, thunk)
 
 	(* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)

@@ -14,7 +14,7 @@ is
 
 (* imports *)
 
-base/base.cm              (* <- Style, Token *)
-formatting/formatting.cm  (* <- Formatting *)
-html/html.cm              (* <- HTMLRender *)
+base/base.cm              (* -> Token *)
+formatting/formatting.cm  (* -> Formatting *)
+html/html.cm              (* -> HTMLRender *)
 

@@ -1,0 +1,43 @@
+-- some stuff that used to be in str-PrettyPrint.adoc
+-- need new str-Render.adoc, and sig-???.adoc for PrintPlain and PrintANSI
+
+val setLineWidthFun : (unit -> int) -> unit
+val resetLineWidthFun : unit -> unit
+val getLineWidth : unit -> int
+
+val render : format * (string -> unit) * int -> unit
+val printFormatLW  : int -> format -> unit 
+val printFormat : format -> unit
+val printFormatNL : format -> 
+
+-- for str-Style.adoc?
+(* the unique type for all logical styles; which are to be interpreted during rendering via
+ * a styleMap function *)
+type style = Style.style (* = string *)
+
+
+-- from Formatting.adco (formerly PrettyPrint)
+-- these (or their replacements) to be covered in new sig-DEVICE.adoc, sig-PRINT_FORMAT.adoc
+
+`[.kw]#val# setLineWidthFun : (unit \-> int) \-> unit`::
+  Defines the function that returns the current lineWidth value.
+
+`[.kw]#val# resetLineWidthFun : unit \-> unit`::
+  Reset the lineWidthFun to the default lineWidthFun (the constant function returning 90).
+
+`[.kw]#val# getLineWidth : unit \-> int`::
+  Returns the current line width, obtained by calling the current lineWidthFun function.
+
+`[.kw]#val# render : format * (string \-> unit) * int \-> unit`::
+  Render (fmt, output, lineWidth): render fmt to output given lineWidth as the right margin.
+  This prints directly using output without building a "layout" data structure.
+
+`[.kw]#val# printFormatLW : int \-> format \-> unit`::
+  Printing with an explicit lineWidth argument:
+  `printFormat lineWidth fmt = render (fmt, print, lineWidth)`
+ 
+`[.kw]#val# printFormat : format \-> unit`::
+  `printFormat fmt = printFormatLW (getLineWidth ()) fmt`
+
+`[.kw]#val# printFormatNL : format \-> unit`::
+  `printFormatNL fmt = printFormatLW (getLineWidth ()) (appendNewLine fmt)`

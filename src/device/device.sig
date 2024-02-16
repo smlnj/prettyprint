@@ -10,7 +10,7 @@ sig
   structure Mode :
     sig
       type mode
-      type stylemap = Style.style -> mode
+      type stylemap = string -> mode
       val nullStylemap : stylemap
     end
 

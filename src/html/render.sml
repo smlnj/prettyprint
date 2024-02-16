@@ -1,4 +1,4 @@
-(* prettyprint/src/html/html-render.sml *)
+(* prettyprint/src/html/render.sml *)
 
 (* Version 7.1
  *  the Render structure
@@ -12,6 +12,11 @@
  *
  * Version 8.4 [2023.3.1]
  *  -- simplify Break constructor names: HardLine -> Hard, SoftLine -> Soft, NullBreak -> Null
+ *
+ * Version 10.2 [2024.2.15]
+ *  -- Style.style replaced by "string"
+ *  -- Renamed:
+ *     styleToHtmlStyle -> htmlStylemap
  *)
 
 structure HTMLRender : HTML_RENDER =
@@ -19,10 +24,11 @@ struct
 
 local
 
-  structure H = HTML       (* <- smlnj-lib/HTML/html.sml -- HTML 3 abstract syntax *)
-  structure F = Format     (* <- ../formatting/format.sml -- concrete format representation *)
-  structure M = Measure    (* <- ../formatting/measure.sml -- measure for concrete formats *)
-  structure S = HTMLStyle  (* <- html-style.sml -- HTML styles *)
+  structure H = HTML        (* <- smlnj-lib/HTML/html.sml -- HTML 3 abstract syntax *)
+  structure F = Format      (* <- ../formatting/format.sml -- the concrete format types *)
+  structure FM = Formatting (* <- ../formatting/formatting.sml -- concrete format representation *)
+  structure M = Measure     (* <- ../formatting/measure.sml -- measure for concrete formats *)
+  structure S = HTMLStyle   (* <- ./html-style.sml -- HTML styles *)
 
   fun error (msg: string) = (print ("Error[HTMLRender]: " ^ msg); raise Fail "Render")
 in
@@ -54,8 +60,8 @@ fun lineBreak (blm, texts) =
  *  Rendering
  * -------------------------------------------------------------------------------- *)
 
-(* wrapStyle : S.style * H.text -> H.text *)
-(* wrap a text with a style, e.g. B for bold *)
+(* wrapStyle : string * H.text -> H.text *)
+(* wrap a text with an HTML style, e.g. B for bold *)
 fun wrapStyle (style : S.htmlStyle, text: H.text) : H.text =
     (case style
       of S.NOEMPH => text
@@ -119,8 +125,8 @@ fun lineBreak (ind: int, texts: H.text list) = space ind :: H.BR{clear=NONE} :: 
 
 (* There is one exported rendering function: render. *)
 
-(* render : format * [lw]int -> H.text
- *   format: format  -- the format to be rendered and printed
+(* render : FM.format * [lw]int -> H.text
+ *   format: FM.format  -- the format to be rendered and printed (abstract version)
  *   lw: int  -- the line width, assumed fixed during the rendering
  * The top-level render function decides where to conditionally break lines, and how much indentation
  * should follow each line break, based on the line space available (the difference between the current
@@ -133,7 +139,7 @@ fun lineBreak (ind: int, texts: H.text list) = space ind :: H.BR{clear=NONE} :: 
  * cc represents the "print cursor", while newlinep indicates whether we are starting
  * immediately after a line break (a newline + indentation).
  *)
-fun render (format: F.format, lineWidth: int) : H.text =
+fun render (format: FM.format, lineWidth: int) : H.text =
     let (* flatRender : format -> H.text
 	 *   render as though on an unbounded line (lw = "infinity"), thus "flat" 
 	 *     (i.e. no line space pressure).
@@ -142,8 +148,8 @@ fun render (format: F.format, lineWidth: int) : H.text =
 	 *   newlinep (post line break status).
 	 *   flatRender is called once when rendering a FLAT format when the format fits.
 	 *   NOTE: flat formatting is independent of order in blocks, so we can use foldr *)
-	fun flatRender format =
-	    let (* render1: format -> H.text
+	fun flatRender (format : F.format) =
+	    let (* render1: F.format -> H.text
 		 * recurses over the format structure, translating into HTML.text while suppressing all
 		 * line breaks. *)
 		fun render1  (format: F.format) =
@@ -155,7 +161,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
 			 | F.INDENT (_, fmt) => render1 fmt  (* ignoring INDENT *)
 			 | F.FLAT fmt => render1 fmt         (* already flat, so FLAT does nothing *)
 			 | F.ALT (fmt, _) => render1 fmt     (* any format fits, so render first *)
-			 | F.STYLE (style, fmt) => wrapStyle (S.styleToHtmlStyle style, render1 fmt))
+			 | F.STYLE (style, fmt) => wrapStyle (S.htmlStylemap style, render1 fmt))
 
 		(* renderBLOCK : element list -> H.text *)
 		and renderBLOCK nil = empty  (* render an empty BLOCK as empty; should not happen! *)
@@ -246,7 +252,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
 
                   | F.STYLE (style, format) =>
 		      let val (text, cc', newlinep') = render1 (format, cc, newlinep)
-		       in (wrapStyle (S.styleToHtmlStyle style, text), cc', newlinep')
+		       in (wrapStyle (S.htmlStylemap style, text), cc', newlinep')
 		      end)
 
         (* How to deal with adjacent breaks in BLOCKs:
@@ -353,7 +359,7 @@ fun render (format: F.format, lineWidth: int) : H.text =
 	      end
 
 	  (* the initial "context" of a render is a virtual newline + 0 indentation, hence cc=0 and newlinep=true *)
-	  val (text, _, _) = render1 (format, 0, true)
+	  val (text, _, _) = render1 (FM.formatRep format, 0, true)
 
     in consolidate text
    end (* fun render *)
@@ -395,7 +401,6 @@ a newline+indent (to its blm?).
 
 Should this be disallowed?  Probably not, until we find that it is causing problems or confusion for users.
 
-
 5. Block Left Margin (blm: int)
     The blm is the "left margin" of a block assigned to it by the renderer.  No non-blank character
     in the block should be printed to the left of this margin.
@@ -408,7 +413,7 @@ Should this be disallowed?  Probably not, until we find that it is causing probl
 QUESTION: under what circumstances will a rendered format _end_ with a newline+indent?
     If this doesn't, or can't, happen, then the returned newlinep value will always be false, and is
     therefore redundant. 
-    Possible general principle: line breaks don't come at the end of a (rendered) format.
+    Possible general principle (or rule): line breaks don't come at the end of a (rendered) format.
     Are there arguments or examples that contradict this principle?
 
 *)

@@ -9,8 +9,8 @@
 structure Plain_Mode =
 struct
   type mode = unit
-  type stylemap = Style.style -> mode  (* string -> mode *)
-  val nullStylemap : stylemap = fn (style: Style.style) => ()
+  type stylemap = string -> mode  (* string -> mode *)
+  val nullStylemap : stylemap = fn (style: string) => ()
 end
 
 structure Plain_Device : DEVICE =

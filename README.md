@@ -1,5 +1,6 @@
 # prettyprint
 A New (2023) SML/NJ Prettyprint library.
+Version 10.2 (2023.2)
 
 This repository contains implementation files and documentation for new pretty printer
 library for SML/NJ. This is a two-phase pretty printer where a value to be prettyprinted
@@ -70,4 +71,3 @@ Seattle.
 A tech report with deeper and broader documentation of the design and its
 background is being prepared and should be available by the end of September,
 2023.
-

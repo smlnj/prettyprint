@@ -1,20 +1,21 @@
-= The `PrettyPrint` structure
+= The `Formatting` structure
 :Author: David MacQueen
-:Date: 2022.12.21
+:Date: 2024.2.13
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: 8.0
 
-The `PrettyPrint` structure is the user-facing module of the new prettyprinter library.
-It is based on mapping data structures to "formats", which are then rendered using
-a provided string output function to print them.
+The `Formatting` structure is the main user-facing module of the new prettyprinter
+library. It provides facilities for defining mappings from data structures to _formats_
+(of type `Format.format`), which will then be _rendered_, either to produce output on some
+_device_, or to produce another formatted file, such as an HTML file.
 
 == Synopsis
 
 [source,sml]
 ------------
-signature PRETTYPRINT
-structure PrettyPrint :> PRETTYPRINT
+signature FORMATTING
+structure Formatting :> FORMATTING
 ------------
 
 [source,sml]
@@ -39,6 +40,7 @@ datatype element
 
 val empty : format            (* == EMPTY, renders as empty string, composition identity *)
 val text : string -> format   (* == the TEXT format constructor *)
+val token : Token.token -> format  (* == the TOKEN format constructor *)
 val integer : int -> format   (* integer n renders as Int.toString n *)
 val string : string -> format (* adds double quotes *)
 val char : char -> format     (* c --> #"c" *)
@@ -47,10 +49,10 @@ val bool : bool -> format     (* true --> TEXT "true", false --> TEXT "false" *)
 val block : element list -> format  (* basic block construction *)
 val ablock : alignment -> format list -> format  (* aligned block construction *)
 
-val hcat : format list -> format   (* = ablock H *)
-val vcat : format list -> format   (* = ablock V *)
-val pcat : format list -> format   (* = ablock P *)
-val ccat : format list -> format   (* = ablock C *)
+val hblock : format list -> format   (* = ablock H *)
+val vblock : format list -> format   (* = ablock V *)
+val pblock : format list -> format   (* = ablock P *)
+val cblock : format list -> format   (* = ablock C *)
 
 val comma : format     (* text "," *)
 val colon : format     (* text ":" *)
@@ -88,16 +90,10 @@ val indent : int -> format -> format
 
 val tryFlat : format -> format
 val alt : format * format -> format
-val hvcat : format list -> format
+val hvblock : format list -> format
 
-val setLineWidthFun : (unit -> int) -> unit
-val resetLineWidthFun : unit -> unit
-val getLineWidth : unit -> int
+val styled : Style.style -> format
 
-val render : format * (string -> unit) * int -> unit
-val printFormatLW  : int -> format -> unit 
-val printFormat : format -> unit
-val printFormatNL : format -> unit
 ------------
 
 == Description
@@ -118,7 +114,7 @@ val printFormatNL : format -> unit
   The empty format that prints nothing when rendered, equivalent to (`text ""`). Empty formats are
   absorbed by adjacent nonempty formats, so that no "separation" whitespace will be printed between and
   empty format and adjacent nonempty formats. Empty serves as an identity element for binary
-  format concatenation operators. For instance, `hcat (fmt, empty) == fmt`.
+  format concatenation operators. For instance, `hblock (fmt, empty) == fmt`.
 
 `[.kw]#val# text : string \-> format`::
   Create an atomic "text" block consisting of a string, which renders as that string.
@@ -132,39 +128,27 @@ val printFormatNL : format -> unit
 `[.kw]#val# ablock : alignment \-> format list \-> format`::
   Build an aligned block with the specified alignment and format components.
 
-`[.kw]#val# hcat : format list \-> format`::
-  `hcat fmts` : Create a horizontally aligned block (with implicit (Space 1) breaks) with
+`[.kw]#val# hblock : format list \-> format`::
+  `hblock fmts` : Create a horizontally aligned block (with implicit (Space 1) breaks) with
   fmts as components.
 
-`[.kw]#val# vcat : format list \-> format`::
-  `vcat fmts` : Create a vertically aligned block (with implicit Hard breaks) with
+`[.kw]#val# vblock : format list \-> format`::
+  `vblock fmts` : Create a vertically aligned block (with implicit Hard breaks) with
   fmts as components.
 
-`[.kw]#val# pcat : format list \-> format`::
-  pcat fmts : Create a "packed" aligned block (with implicit (Soft 1) breaks) with fmts
+`[.kw]#val# pblock : format list \-> format`::
+  pblock fmts : Create a "packed" aligned block (with implicit (Soft 1) breaks) with fmts
   as components.
 
-`[.kw]#val# ccat : format list \-> format`::
-  `ccat fmts` : Create a "compact" aligned block with fmts as components, with no breaks
+`[.kw]#val# cblock : format list \-> format`::
+  `cblock fmts` : Create a "compact" aligned block with fmts as components, with no breaks
   between components.
 
+////
 `[.kw]#val# flat : format \-> format`::
   `flat fmt` : Returns a version of the argument fmt that will be rendered as flat
   (on a single line) and will have the same flat measure.
-
-`[.kw]#val# alt : format * format \-> format`::
-  `alt (fmt1, fmt2)` : The resulting format renders as fmt1 if fmt1 fits, otherwise it renders as fmt2.
-
-`[.kw]#val# tryFlat : format \-> format`::
-  `tryFlat fmt` : The result format renders as (flat fmt) if that fits, and otherwise renders as fmt.
-
-`[.kw]#val# hvcat : format list \-> format`::
-  `hvcat fmts` : Renders as (hcat fmts) if that fits, and otherwise renders as (vcat fmts).
-
-`[.kw]#val# indent : int \-> format \-> format`::
-  `indent n fmt` : Indent `fmt` `n` additional spaces (relative to parent block's blm)
-  but only if following a line break. Otherwise render `fmt` normally, without indentation.
-
+////
 `[.kw]#val# comma, colon, semicolon, period, lparen, rparen, lbracket, rbracket, lbrace, rbrace, equal : format`::
   Punctuation characters as formats (plus the equal symbol, an honorary punctuation symbol).
 
@@ -193,7 +177,7 @@ val printFormatNL : format -> unit
   `braces fmt = enclose {front=lbrace, back=rbrace} fmt` : Enclose fmt with left and right curly braces. 
 
 `[.kw]#val# label : string \-> format \-> format`::
-  `label str fmt = hcat (ccat (text str, colon), fmt)`
+  `label str fmt = hblock (cblock (text str, colon), fmt)`
 
 `[.kw]#val# appendNewLine : format \-> format`::
   Append a hard newline after the format.
@@ -229,28 +213,18 @@ val printFormatNL : format -> unit
   for subsequent format. If header1 and header2 are of unequal sizes, the shorter one is padded
   with spaces on the left to make its size equal to the longer.
 
-`[.kw]#val# setLineWidthFun : (unit \-> int) \-> unit`::
-  Defines the function that returns the current lineWidth value.
+`[.kw]#val# indent : int \-> format \-> format`::
+  `indent n fmt` : Indent `fmt` `n` additional spaces (relative to parent block's blm)
+  but only if following a line break. Otherwise render `fmt` normally, without indentation.
 
-`[.kw]#val# resetLineWidthFun : unit \-> unit`::
-  Reset the lineWidthFun to the default lineWidthFun (the constant function returning 90).
+`[.kw]#val# tryFlat : format \-> format`::
+  `tryFlat fmt` : The result format renders as (flat fmt) if that fits, and otherwise renders as fmt.
 
-`[.kw]#val# getLineWidth : unit \-> int`::
-  Returns the current line width, obtained by calling the current lineWidthFun function.
+`[.kw]#val# alt : format * format \-> format`::
+  `alt (fmt1, fmt2)` : The resulting format renders as fmt1 if fmt1 fits, otherwise it renders as fmt2.
 
-`[.kw]#val# render : format * (string \-> unit) * int \-> unit`::
-  Render (fmt, output, lineWidth): render fmt to output given lineWidth as the right margin.
-  This prints directly using output without building a "layout" data structure.
-
-`[.kw]#val# printFormatLW : int \-> format \-> unit`::
-  Printing with an explicit lineWidth argument:
-  `printFormat lineWidth fmt = render (fmt, print, lineWidth)`
- 
-`[.kw]#val# printFormat : format \-> unit`::
-  `printFormat fmt = printFormatLW (getLineWidth ()) fmt`
-
-`[.kw]#val# printFormatNL : format \-> unit`::
-  `printFormatNL fmt = printFormatLW (getLineWidth ()) (appendNewLine fmt)`
+`[.kw]#val# hvblock : format list \-> format`::
+  `hvblock fmts` : Renders as (hblock fmts) if that fits, and otherwise renders as (vblock fmts).
 
 == See Also
 

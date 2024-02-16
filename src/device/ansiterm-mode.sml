@@ -60,11 +60,12 @@ datatype attribute
  * switchable "font" attribute.]
  *)
 
+(* a mode specifies setting some (zero or more) attributes *)
 type mode = attribute list
 
-type stylemap = Style.style -> mode  (* = string -> mode *)
+type stylemap = string -> mode
 
-fun nullStylemap (s: Style.style) : mode = nil
+fun nullStylemap (s: string) : mode = nil
 
 end (* top local *)
 end (* structure ANSITermMode *)

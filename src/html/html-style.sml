@@ -6,24 +6,18 @@
 structure HTMLStyle =
 struct
 
-local  (* imported structures *)
-
-  structure S = Style
-
-in
-
 datatype htmlStyle
   = NOEMPH
   | TT | I | B | U | STRIKE | EM
   | STRONG | DFN | CODE | SAMP | KBD
   | VAR | CITE
   | COLOR of string (* the names of colors as spacified for HTML 3.2 *)
-  | A of string  (* the href URL string *)
+  | A of string  (* the href URL string (what about the link name?) *)
 
 fun isSharpChar (c : char) = (c = #"#")
 
-(* styleToHtmlStyle : S.style -> htmlStyle *)
-fun styleToHtmlStyle (s: S.style) =
+(* htmlStylemap : string -> htmlStyle *)
+fun htmlStylemap (s: string) =
     case s
       of "NOEMPH" => NOEMPH
        | "TT" => TT
@@ -43,7 +37,7 @@ fun styleToHtmlStyle (s: S.style) =
 	  (case (String.fields isSharpChar s)
 	     of ["A", href] => A href
 	      | ["COLOR", color] => COLOR color
-	      | _ => raise S.UnrecognizedStyle)
+	      | _ => raise Fail "Unrecognized HTML style string")
 
 (* A color style string is of the form "COLOR#Black", where "Black" could be the string
  * name of any HTML color.
@@ -52,6 +46,4 @@ fun styleToHtmlStyle (s: S.style) =
  * styleToHtmlStyle function above.
  *)
 
-
-end (* top local *)
 end (* structure HTMLStyle *)    
