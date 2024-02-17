@@ -215,7 +215,7 @@ val styled : Style.style -> format
 
 `[.kw]#val# indent : int \-> format \-> format`::
   `indent n fmt` : Indent `fmt` `n` additional spaces (relative to parent block's blm)
-  but only if following a line break. Otherwise render `fmt` normally, without indentation.
+  but only if following a line break. Otherwise render `fmt` normally at current location, without indentation.
 
 `[.kw]#val# tryFlat : format \-> format`::
   `tryFlat fmt` : The result format renders as (flat fmt) if that fits, and otherwise renders as fmt.

@@ -1,0 +1,47 @@
+## SML/NJ stuff ##
+.cm/
+
+## HTML stuff (generated from adoc) ## 
+*.html
+
+## LaTeX stuff
+
+# Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# Generated if empty string is given at "Please type another file name for output:"
+.pdf
+
+# Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# Build tool auxiliary files:
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+## Other stuff ##
+*.tgz
+*.swp
+
+# macOS finder
+.DS_Store

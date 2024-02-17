@@ -1,25 +1,39 @@
-(* prettyprint/src/render/printformat.sig *)
+= The `PRINT_FORMAT` signature
+:Author: David MacQueen
+:Date: 2024.2.15
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: 8.0
 
-(* Version 10.1
- * Imports : Formatting, DeviceType
- * Exports : signature PRINT_FORMAT
- *)
+The `PRINT_FORMAT` signature specifies functions that print formats, given stylemaps.
+The structures `PrintPlain` and `PrintANSI` that have signature `PRINT_FORMAT` are based
+on different `Device` structures (`PlainDevice` and ANSITermDevice`, respectively).
 
-signature PRINT_FORMAT =
-sig
-    
-  structure Device: DEVICE
+== Synopsis
 
-  (* Printing formats *)
+[source,sml]
+----
+signature PRINT_FORMAT
+structure PrintPlain : PRINT_FORMAT
+structure PrintANSI : PRINT_FORMAT
 
-  val renderStdout : Device.Mode.stylemap -> int -> Formatting.format -> unit
-        (* printing to stdOut, with line width as 2nd argument, supporing
-         * ANSITerm styles through the stylemap argument *)
+Imports: Device, DEVICE, Formatting
+----
 
-  val printFormat : Device.Mode.stylemap -> Formatting.format -> unit
-        (* print to stdOut with default lineWidth (80) *)
+[source,sml]
+----
+`[.kw]#val# renderStdout : Device.Mode.stylemap -> int -> Formatting.format -> unit`::
+Printing to `stdOut`, with line width as 2nd argument, supporing `ANSITerm` styles through the `stylemap` argument.
 
-  val printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit
-	(* like printFormat, but with a newline appended to the format *)
+`[.kw]#val# printFormat : Device.Mode.stylemap -> Formatting.format -> unit`::
+Print to `stdOut` with default `lineWidth =80`.
 
-end (* signature PRINT_FORMAT *)
+`[.kw]#val# printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit`::
+Like `printFormat`, but with a newline appended to the format.
+----
+
+== See Also
+
+xref: prettyprint-manual.adoc
+xref: str-Formatting.adoc
+xref: sig-DEVICE.adoc

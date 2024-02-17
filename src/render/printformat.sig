@@ -1,7 +1,7 @@
 (* prettyprint/src/render/printformat.sig *)
 
-(* Version 10.1
- * Imports : Formatting, DeviceType
+(* Version 10.2
+ * Imports : Formatting, Device
  * Exports : signature PRINT_FORMAT
  *)
 
