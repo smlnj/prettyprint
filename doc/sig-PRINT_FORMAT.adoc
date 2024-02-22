@@ -3,11 +3,12 @@
 :Date: 2024.2.15
 :stem: latexmath
 :source-highlighter: pygments
-:VERSION: 8.0
+:VERSION: 10.2
 
 The `PRINT_FORMAT` signature specifies functions that print formats, given stylemaps.
 The structures `PrintPlain` and `PrintANSI` that have signature `PRINT_FORMAT` are based
-on different `Device` structures (`PlainDevice` and ANSITermDevice`, respectively).
+on different `Device` structures (`PlainDevice` for printing plain text, and ANSITermDevice`
+for printing to an ANSI terminal, respectively).
 
 == Synopsis
 
@@ -17,7 +18,7 @@ signature PRINT_FORMAT
 structure PrintPlain : PRINT_FORMAT
 structure PrintANSI : PRINT_FORMAT
 
-Imports: Device, DEVICE, Formatting
+Imports: DEVICE, Formatting
 ----
 
 [source,sml]
@@ -29,7 +30,7 @@ Printing to `stdOut`, with line width as 2nd argument, supporing `ANSITerm` styl
 Print to `stdOut` with default `lineWidth =80`.
 
 `[.kw]#val# printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit`::
-Like `printFormat`, but with a newline appended to the format.
+Like `printFormat`, but with a newline appended to the end of the format.
 ----
 
 == See Also

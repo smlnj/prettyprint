@@ -209,22 +209,23 @@ val styled : Style.style -> format
   Formats a format option, producing `text "NONE"` or `"SOME(.)"`.
 
 `[.kw]#val# vHeaders : {header1: string, header2: string} \-> format list \-> format`::
-  Vertically align the formats with header1 as header for the first format and header2 as header
-  for subsequent format. If header1 and header2 are of unequal sizes, the shorter one is padded
-  with spaces on the left to make its size equal to the longer.
+  Vertically align the formats with `header1` as header for the first format and
+  `header2` as header for subsequent formats. If `header1` and `header2` are of unequal sizes,
+  the shorter one is padded with spaces on the left to make its size equal to the longer.
 
 `[.kw]#val# indent : int \-> format \-> format`::
-  `indent n fmt` : Indent `fmt` `n` additional spaces (relative to parent block's blm)
-  but only if following a line break. Otherwise render `fmt` normally at current location, without indentation.
+  `indent n fmt`: Indent `fmt` `n` additional spaces (relative to the parent block's blm)
+  but only if immediately following a line break. Otherwise render `fmt` normally at current location,
+  with no line break or indentation.
 
 `[.kw]#val# tryFlat : format \-> format`::
-  `tryFlat fmt` : The result format renders as (flat fmt) if that fits, and otherwise renders as fmt.
+  `tryFlat fmt` renders as `(flat fmt)` if that fits, and otherwise renders as `fmt`.
 
 `[.kw]#val# alt : format * format \-> format`::
-  `alt (fmt1, fmt2)` : The resulting format renders as fmt1 if fmt1 fits, otherwise it renders as fmt2.
+  `alt (fmt1, fmt2)` renders as `fmt1` if `fmt1` fits, otherwise it renders as `fmt2`.
 
 `[.kw]#val# hvblock : format list \-> format`::
-  `hvblock fmts` : Renders as (hblock fmts) if that fits, and otherwise renders as (vblock fmts).
+  `hvblock fmts` renders as `(hblock fmts)` if that fits, and otherwise renders as `(vblock fmts)`.
 
 == See Also
 

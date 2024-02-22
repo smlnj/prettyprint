@@ -1,0 +1,63 @@
+= The `DEVICE` signature
+:Author: David MacQueen
+:Date: 2024.2.18
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: 10.2
+
+`DEVICE` is the signature for device classes (currently limited to `Plain_Device` and
+`ANSITerm_Device`).
+
+== Synopsis
+
+[source,sml]
+----
+signature DEVICE
+structure Plain_Device : DEVICE 
+structure ANSITerm_Device : DEVICE
+
+Imports: Token
+----
+
+== Description
+
+`[.kw]#structure# Mode : MODE`::
+The device mode (physical styles).
+
+`[.kw]#type# device`::
+The type of a device value (abstract).	     
+
+`[.kw]#exception# DeviceError`::
+An exception potentially raised internally by the `renderStyled` function.
+
+`[.kw]#val# mkDevice : TextIO.outstream -> int -> device`::
+To create a device, we provide an outstream and a line width.
+
+`[.kw]#val# resetDevice : device -> unit`::
+Used to reset the internal state (if any) of a device.
+
+`[.kw]#val# width : device -> int`::
+Returns the line width associated with the device.
+
+`[.kw]#val# space : device -> int -> unit`::
+`space dev n` outputs n spaces to the device's outstream.
+
+`[.kw]#val# indent : device -> int -> unit`::
+`indent dev n` outputs n spaces to the device's outstream (assumed after newline).
+
+`[.kw]#val# newline : device -> unit`::
+`newline dev` outputs a newline to the device's outstream.
+
+`[.kw]#val# string : device -> string -> unit`::
+`string dev ` outputs string s to the device's outstream.
+
+`[.kw]#val# token : device -> Token.token -> unit`::
+`token dev tok` outputs the base string of token `tok` to the device's outstream.
+
+`[.kw]#val# flush : device -> unit`::
+`flush dev` flushes and pending output to the device's outstream.
+
+`[.kw]#val# renderStyled : device -> Mode.mode * (unit -> 'r)  -> 'r`::
+`renderStyled dev (mode, thunk)` forces the rendering thunk with layered mode applied to
+the device. Potentially raises DeviceError.
+(\'r will instantiate to a "renderState" type)
