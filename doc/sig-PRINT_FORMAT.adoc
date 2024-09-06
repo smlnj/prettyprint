@@ -2,6 +2,7 @@
 :Author: David MacQueen
 :Date: 2024.2.15
 :stem: latexmath
+:stylesheet: smlnj-lib-base.css
 :source-highlighter: pygments
 :VERSION: 10.2
 
@@ -19,22 +20,30 @@ structure PrintPlain : PRINT_FORMAT
 structure PrintANSI : PRINT_FORMAT
 
 Imports: DEVICE, Formatting
+
+structure Device: DEVICE
+
+val renderStdout : Device.Mode.stylemap -> int -> Formatting.format -> unit
+
+val printFormat : Device.Mode.stylemap -> Formatting.format -> unit
+
+val printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit
 ----
 
-[source,sml]
-----
-`[.kw]#val# renderStdout : Device.Mode.stylemap -> int -> Formatting.format -> unit`::
+== Description
+
+`[.kw]#val# renderStdout : Device.Mode.stylemap \-> int \-> Formatting.format \-> unit`::
 Printing to `stdOut`, with line width as 2nd argument, supporing `ANSITerm` styles through the `stylemap` argument.
 
-`[.kw]#val# printFormat : Device.Mode.stylemap -> Formatting.format -> unit`::
+`[.kw]#val# printFormat : Device.Mode.stylemap \-> Formatting.format \-> unit`::
 Print to `stdOut` with default `lineWidth =80`.
 
-`[.kw]#val# printFormatNL : Device.Mode.stylemap -> Formatting.format -> unit`::
+`[.kw]#val# printFormatNL : Device.Mode.stylemap \-> Formatting.format \-> unit`::
 Like `printFormat`, but with a newline appended to the end of the format.
-----
 
 == See Also
 
-xref: prettyprint-manual.adoc
-xref: str-Formatting.adoc
-xref: sig-DEVICE.adoc
+xref:prettyprint-manual.adoc[Prettyprint Manual] +
+xref:str-Formatting.adoc[`[.kw]#structure# Formatting`] +
+xref:sig-DEVICE.adoc[`[.kw]#signature# DEVICE`] +
+xref:sig-MODE.adoc[`[.kw]#signature# MODE`]

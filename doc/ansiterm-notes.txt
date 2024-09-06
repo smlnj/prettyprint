@@ -532,3 +532,7 @@ aquamac:
     the BG color unchanged; [FG Green, INVIS] does not change the FG color).
    
 
+* "Style" Terminology
+
+  logical style == semantic style
+  physical style == device mode(s) [sets of device text attributes, e.g. bold, Red.

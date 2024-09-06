@@ -2,8 +2,9 @@
 :Author: David MacQueen
 :Date: 2024.2.13
 :stem: latexmath
+:stylesheet: smlnj-lib-base.css
 :source-highlighter: pygments
-:VERSION: 8.0
+:VERSION: 10.2
 
 The `Formatting` structure is the main user-facing module of the new prettyprinter
 library. It provides facilities for defining mappings from data structures to _formats_
@@ -13,13 +14,12 @@ _device_, or to produce another formatted file, such as an HTML file.
 == Synopsis
 
 [source,sml]
-------------
+----
 signature FORMATTING
 structure Formatting :> FORMATTING
-------------
 
-[source,sml]
-------------
+Imports: Token
+
 type format  (* abstract *)
 
 datatype alignment  (* alignment property of "aligned" blocks *)
@@ -92,9 +92,8 @@ val tryFlat : format -> format
 val alt : format * format -> format
 val hvblock : format list -> format
 
-val styled : Style.style -> format
-
-------------
+val styled : string -> format -> format
+----
 
 == Description
 
@@ -227,6 +226,10 @@ val styled : Style.style -> format
 `[.kw]#val# hvblock : format list \-> format`::
   `hvblock fmts` renders as `(hblock fmts)` if that fits, and otherwise renders as `(vblock fmts)`.
 
+`[.kw]#val# styled : string \-> format \-> format`::
+  `styled style format` : render `format` with _logical_ style `style`.
+
 == See Also
 
-xref:prettyprint-manual.adoc
+xref:prettyprint-manual.adoc[Prettyprint Manual] +
+xref:str-Token.html[`[.kw]#structure# Token`]

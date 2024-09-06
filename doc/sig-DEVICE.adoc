@@ -3,10 +3,10 @@
 :Date: 2024.2.18
 :stem: latexmath
 :source-highlighter: pygments
+:stylesheet: smlnj-lib-base.css
 :VERSION: 10.2
 
-`DEVICE` is the signature for device classes (currently limited to `Plain_Device` and
-`ANSITerm_Device`).
+`DEVICE` is the signature for device classes (currently limited to two choices: `Plain_Device` and `ANSITerm_Device`).
 
 == Synopsis
 
@@ -16,19 +16,48 @@ signature DEVICE
 structure Plain_Device : DEVICE 
 structure ANSITerm_Device : DEVICE
 
-Imports: Token
+Imports: Token, MODE
+
+structure Mode : MODE
+
+type device
+
+exception# DeviceError
+
+val mkDevice : TextIO.outstream -> int -> device
+
+val resetDevice : device -> unit
+
+val width : device -> int
+
+val space : device -> int -> unit
+
+val indent : device -> int -> unit
+
+val newline : device -> unit
+
+val string : device -> string -> unit
+
+val token : device -> Token.token -> unit
+
+val flush : device -> unit
+
+(* 'r will instantiate to a "renderState" type *)
+(* potentially raises DeviceError *)
+val renderStyled : device -> Mode.mode * (unit -> 'r)  -> 'r
 ----
 
 == Description
 
 `[.kw]#structure# Mode : MODE`::
-The device mode (physical styles).
+The device mode (or _physical_ style).
 
 `[.kw]#type# device`::
 The type of a device value (abstract).	     
 
 `[.kw]#exception# DeviceError`::
-An exception potentially raised internally by the `renderStyled` function.
+An exception potentially raised internally by the `renderStyled` function, signaling
+that the device is in a bad state.
 
 `[.kw]#val# mkDevice : TextIO.outstream -> int -> device`::
 To create a device, we provide an outstream and a line width.
@@ -55,9 +84,13 @@ Returns the line width associated with the device.
 `token dev tok` outputs the base string of token `tok` to the device's outstream.
 
 `[.kw]#val# flush : device -> unit`::
-`flush dev` flushes and pending output to the device's outstream.
+`flush dev` flushes any pending output to the device's outstream.
 
 `[.kw]#val# renderStyled : device -> Mode.mode * (unit -> 'r)  -> 'r`::
 `renderStyled dev (mode, thunk)` forces the rendering thunk with layered mode applied to
 the device. Potentially raises DeviceError.
-(\'r will instantiate to a "renderState" type)
+(`'r` will instantiate to a `renderState` type)
+
+== See Also
+
+xref:sig-MODE.adoc[`[.kw]#signature# MODE`]

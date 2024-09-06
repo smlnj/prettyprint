@@ -1,6 +1,7 @@
 = PrettyPrint: A New Prettyprinter Library for Standard ML
 David MacQueen <dmacqueen@mac.com>
-:description: A manual for PrettyPrint, the new SML/NJ prettyprinter library
+:description: A manual for PrettyPrint, a new SML/NJ prettyprinter library
+:stylesheet: smlnj-lib-base.css
 :version: 8.4, 2023.3.1
 
 This document describes a new prettyprinter library (called PrettyPrint) written in Standard ML
