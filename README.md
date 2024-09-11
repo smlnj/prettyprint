@@ -1,6 +1,7 @@
 # prettyprint
 A New (2023) SML/NJ Prettyprint library.
-Version 10.2 (2023.2)
+Version 10.2 (2023.02)
+Version 11 (2024.09)
 
 This repository contains implementation files and documentation for new pretty printer
 library for SML/NJ. This is a two-phase pretty printer where a value to be prettyprinted
@@ -36,7 +37,8 @@ from the OCaml Format package.
 
 The PrettyPrint library is found in the prettyprint/src directory:
 
-- src/format.sml, the datatypes defining formats
+- src/format.sml, the datatypes defining formats. The type format is exported as
+  an abstract type from Formatting
 
 - src/measure.{sig,sml}, computing the static, flat measure of a format
 
@@ -54,10 +56,36 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 - CHANGELOG.md, the change log for the new prettyprint library.
 
+PPDevice is a copy (2024.09.10, 16:45 PDT) of the PPDevice directory
+of smlnj-lib/Dev/PPDevice in the smlnj-lib-development branch of
+smlnj/smlnj.
+
+jhr is a copy (2024.09.10, 16:30 PDT) of the directory
+smlnj-lib/Dev/PrettyPrint/new of the smlnj-lib-development branch of
+smlnj/smlnj. This is jhr's version of this PrettyPrint library.
+
+Version 11 is a merge of the jhr version with the main (dbm) version
+in the smlnj/prettyprint repository. It contains its own version of
+the Device signature that will be matched by the PPDevice device
+signature version in PPDevice/src/pp-device.sig.
+
+In Version 11 there are some minor adjustments in formatting.{sig,
+sml} to incorporate minor jhr changes. The Device signature
+(srcdevice/device.sig) is modified to add style (physical device
+style) and token types (the "physical" token representation).  The
+renderer requires two mappings, one a stylemap mapping "logical" styles
+(e.g. "keyword") to a concrete device style type (e.g. lists of
+ANSITerm "modes" like "bold" and "red"), and the other a tokenmap that
+map logical tokens (defined in the Token structure) to possibly
+device-specific token encodings of the devise "physical" token type.
+
+There is still no support for any form of tab or tabulation
+functionality in Version 11.
+
 ## Documentation
 
 [The documentation in the two adoc files is currently for Version 8.5, and needs to be
-updated for Version 10.0 to document styles, for instance.]
+updated for Version 11.0 to document styles, stylemaps, and tokenmaps.]
 
 The following files are located in the doc directory:
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
@@ -69,5 +97,4 @@ the new prettyprint library at the ML Family Workshop, Sept 8, 2023 in
 Seattle.
 
 A tech report with deeper and broader documentation of the design and its
-background is being prepared and should be available by the end of September,
-2023.
+background is being prepared and will be available sometime later.
