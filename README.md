@@ -56,36 +56,36 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 - CHANGELOG.md, the change log for the new prettyprint library.
 
-PPDevice is a copy (2024.09.10, 16:45 PDT) of the PPDevice directory
-of smlnj-lib/Dev/PPDevice in the smlnj-lib-development branch of
-smlnj/smlnj.
+The directory jhr is a copy (2024.09.10, 16:30 PDT) of smlnj-lib/Dev/PrettyPrint/new from
+the smlnj-lib-development branch of smlnj/smlnj. This is jhr's version of this PrettyPrint
+library.
 
-jhr is a copy (2024.09.10, 16:30 PDT) of the directory
-smlnj-lib/Dev/PrettyPrint/new of the smlnj-lib-development branch of
-smlnj/smlnj. This is jhr's version of this PrettyPrint library.
+The directory PPDevice is a copy (2024.09.10, 16:45 PDT) of the PPDevice directory
+from smlnj-lib/Dev/PPDevice in the smlnj-lib-development branch of smlnj/smlnj.
 
-Version 11 is a merge of the jhr version with the main (dbm) version
-in the smlnj/prettyprint repository. It contains its own version of
-the Device signature that will be matched by the PPDevice device
-signature version in PPDevice/src/pp-device.sig.
+Version 11 is a merge of the jhr version with the main (dbm) version in the
+smlnj/prettyprint repository. It uses its own version of the Device signature that will be
+matched by the PPDevice device signature (PPDevice/src/pp-device.sig).
 
-In Version 11 there are some minor adjustments in formatting.{sig,
-sml} to incorporate minor jhr changes. The Device signature
-(srcdevice/device.sig) is modified to add style (physical device
-style) and token types (the "physical" token representation).  The
-renderer requires two mappings, one a stylemap mapping "logical" styles
-(e.g. "keyword") to a concrete device style type (e.g. lists of
-ANSITerm "modes" like "bold" and "red"), and the other a tokenmap that
-map logical tokens (defined in the Token structure) to possibly
-device-specific token encodings of the devise "physical" token type.
+In Version 11 there are some minor adjustments in formatting.{sig, sml} to incorporate
+minor jhr changes. The Device signature (srcdevice/device.sig) is modified to add style
+(physical device style) and token types (the "physical" token representation).  The
+renderer requires two mappings, one a stylemap mapping "logical" styles (e.g. "keyword")
+to a concrete device style type (e.g. lists of ANSITerm "modes" like "bold" and "red"),
+and the other a tokenmap that map logical tokens (defined in the Token structure) to
+possibly device-specific token encodings of the devise "physical" token type.
 
-There is still no support for any form of tab or tabulation
-functionality in Version 11.
+Our device interface includes the "withStyle" function, formerly
+known as "renderStyled".
+
+There is still no support for any form of tab or tabulation functionality in Version 11.
+Some such functionality may be added in a future version.
 
 ## Documentation
 
-[The documentation in the two adoc files is currently for Version 8.5, and needs to be
-updated for Version 11.0 to document styles, stylemaps, and tokenmaps.]
+[The documentation in the two adoc files is currently for Version 8.5,
+so they need to be updated for Version 11.0 to document devices, styles (logical and
+"physical"), tokens (logical and "physical"), stylemaps, and tokenmaps.]
 
 The following files are located in the doc directory:
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
