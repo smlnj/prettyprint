@@ -195,6 +195,7 @@ sig
     val colon : format     (* text ":" *)
     val semicolon : format (* text ";" *)
     val period : format    (* text "." *)
+    val equal : format     (* text "=", an honorary punctuation mark *)
 
     val lparen : format    (* text "(" *)
     val rparen : format    (* text ")" *)
@@ -204,7 +205,6 @@ sig
     val rbrace : format    (* text "}" *)
     val langle : format    (* text "<" *)
     val rangle : format    (* text ">" *)
-    val equal : format     (* text "=", an honorary punctuation mark *)
 
   (* wrapping or enclosing formats, plus appending newlines and prepending labels *)
 
@@ -221,13 +221,13 @@ sig
         (* like parens, but with lbrace and rbrace *)
 			       
     val angleBrackets : format -> format			       
-        (* like parens, but with lanble and rangle *)
+        (* like parens, but with langle and rangle *)
 
     val appendNewLine : format -> format
         (* append a newline to the format -- normally used for "top-level" printing *)
 
     val label : string -> format -> format
-
+        (* add a string label in front of a format, separated by a space *)
 
   (* composing lists of formats with separator format *)
 
@@ -249,7 +249,7 @@ sig
   (* indenting formats *)
 
     val indent : int -> format -> format
-        (* indent n EMPTY ==> EMPTY; indent n fmt ==> INDENT (n, frmt) *)
+        (* indent n EMPTY ==> EMPTY; indent n fmt ==> INDENT (n, frmt); n >= 0 *)
 
 
   (* Conditional formats: *)
@@ -265,5 +265,6 @@ sig
 	(* acts as hblock if it fits, otherwise as vblock *)
 
     val styled : Style.style -> format -> format
+        (* wrap a format with a logical style *)
 
 end (* end FORMATTING *)
