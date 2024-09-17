@@ -13,12 +13,9 @@ is
 
 device.sig          (* <- signature DEVICE *)
 plain-device.sml    (* <- structure Plain_Device *)
-ansiterm-mode.sml   (* <- structure ANSITerm_Mode:
-                          "physical style" modes for ANSI terminals *)
 ansiterm-device.sml (* <- structure ANSITerm_Device for ANSI terminals *)
 
 (* imports *)
 
-../base/base.cm     (* -> Token *)
 $/basis.cm
 $/smlnj-lib.cm      (* -> ANSITerm (& an unrelated Format structure!) *)

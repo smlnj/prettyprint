@@ -1,9 +1,8 @@
 (* prettyprint/src/device/device.sig *)
 
 (* revised signature for device class structures (ANSITerm, Plain)
- *   depends on: Token (src/base/token.sml).  A structure matching the
- *   PPDevice device signature will also match this signature.  That is,
- *   this DEVICE signature is supposed to be a "supertype" of the PPDevice
+ *   A structure matching the PPDevice device signature will also match this signature.
+ *   That is, this DEVICE signature is supposed to be a "supertype" of the PPDevice
  *   DEVICE signature.
  *)
 
@@ -42,7 +41,7 @@ sig
    (* (1) The members of this type are meant to contain (possibly) device-dependent encodings of
     *     "logical" tokens.
     *     For instance, a logical token might be ("lambda",1), which would map, via a
-    *     "tokenmap" function to a device token (defined in, say, ANSITermDevice) that is
+    *     tokenmap function to a device token (defined in, say, ANSITermDevice) that is
     *     a unicode encoding of the greek lambda character (as an ascii string).
     * (2) if the token type is defined in a device, how can tokens appear in formats?
     *     The Format.format type uses a Token.token type that is independent of devices,

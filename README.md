@@ -56,12 +56,25 @@ The PrettyPrint library is found in the prettyprint/src directory:
 - prettyprint-lib.cm, the CM file for compiling the prettyprinter,
   referring to src/prettyprint.cm. (??? sourc.cm vs prettyprint-lib.cm ???)
 
+The device model. The render functor is parameterized over the DEVICE
+signature in device/device.sig. The question is whether this device
+model is "compatible" with the PPDevice library (in development for
+the smlnj-lib library). I claim that the implementation of the ANSI
+term device here is simpler and cleaner than the one found in PPDevice.
+
+- device/device.cm
+
 - device/device.sig
+
+- device/plain-device.sml: plain text output device with no device
+  styles or tokens
+  
+- device/ansiterm-device.sml: ANSI terminal device with device styles and tokens
 
 - CHANGELOG.md: the change log for the new prettyprint library.
 
-The directory jhr is a copy (2024.09.10, 16:30 PDT) of smlnj-lib/Dev/PrettyPrint/new from
-the smlnj-lib-development branch of smlnj/smlnj. This is jhr's
+The directory jhr (temporary) is a copy (2024.09.10, 16:30 PDT) of smlnj-lib/Dev/PrettyPrint/new
+from the smlnj-lib-development branch of smlnj/smlnj. This is jhr's
 modified version of this PrettyPrint library. Some, but not all, of
 his suggested changes have been adopted. See CHANGELOG.md for Version 11.
 
