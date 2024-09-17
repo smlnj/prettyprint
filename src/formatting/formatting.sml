@@ -73,10 +73,13 @@
  *     Token (base/token.sml via base/base.cm)
  *
  *   Thus eliminating the need for the trivial Style structure.
+ *
+ * Version 11.0 [2024.09]
+ *   See comment for Version 11 on formatting.sig.
  *)
 
 (* Defines:
- *   structure Formatting: FORMATTING
+ *   structure Formatting :> FORMATTING
  *)
 
 structure Formatting :> FORMATTING =
@@ -90,15 +93,21 @@ local
 
 in
 
-(* type format (= Format.format) re-exported as an abstract type *)
-type format = F.format
+(* type format (= Format.format) re-exported as an "abstract" type == Format.format.
+ *   Its data constructors are not exported by FORMATTING. *)
+datatype format = datatype F.format
 
 datatype alignment = datatype F.alignment
 datatype element = datatype F.element
 datatype break = datatype F.break
 
-(* but we need a coercion back to Format.format so that we can pass abstract formats to
- * functions like Render.render that need the concrete type. formatRep is the identity. *)
+(* But we need? a coercion back to Format.format so that we can pass abstract formats to
+ * functions like Render.render that need the concrete type. formatRep is the identity.
+ * [DBM] I assume? that this formatRep function is now redundant given that the local
+ * format type is == Format.format.  However, Formatting.format is not a concrete type
+ * (i.e. it is not a datatype) because its data constructors are not exported by the
+ * FORMATTING signature.
+ *)
 fun formatRep (fmt : F.format) : F.format = fmt
 
 (*** the basic block building functions ***)
@@ -183,12 +192,14 @@ fun char (c: char) = cblock [text "#", string (Char.toString c)]
 fun bool (b: bool) = text (Bool.toString b)
 
 
-(*** "punctuation" characters and related symbols ***)
+(*** "punctuation" and "grouping" characters and related symbols as formats ***)
 
 val comma : format     = text ","
 val colon : format     = text ":"
 val semicolon : format = text ";"
 val period : format    = text "."
+val equal  : format    = text "="
+
 val lparen : format    = text "("
 val rparen : format    = text ")"
 val lbracket : format  = text "["
@@ -197,7 +208,6 @@ val lbrace : format    = text "{"
 val rbrace : format    = text "}"
 val langle : format    = text "<"
 val rangle : format    = text ">"
-val equal  : format    = text "="
 
 
 (*** wrapping or closing formats, e.g. parenthesizing a format ***)
@@ -297,8 +307,8 @@ fun padHeaders (s1, s2) =
 	 StringCvt.padLeft #" " maxsize s2)
     end
 
-(* vHeaders : {header1 : string, header2 : string} -> format list -> format *)
-fun vHeaders {header1: string, header2: string} (elems: format list) =
+(* vSequenceLabeled (was vHeaders) : {header1 : string, header2 : string} -> format list -> format *)
+fun vSequenceLabeled {header1: string, header2: string} (elems: format list) =
     let val (header1, header2) = padHeaders (header1, header2)
      in case elems
 	  of nil => empty
@@ -307,11 +317,6 @@ fun vHeaders {header1: string, header2: string} (elems: format list) =
 		 (hblock [text header1, elem] ::
 		  map (fn fmt => hblock [text header2, fmt]) rest)
     end
-
-(* DEPRICATED! *)
-(* vHeadersMap : {header1 : string, header2 : string} -> ([formatter:] 'a -> format) -> 'a list -> format *)
-fun vHeadersMap (headers as {header1: string, header2: string}) (formatter: 'a -> format) (xs: 'a list) =
-    vHeaders headers (map formatter xs)
 
 
 (*** "indenting" formats ***)
@@ -358,4 +363,7 @@ end (* structure Formatting *)
    Rendering is "device-based", except for the HTML renderer. Devices do not affect "formatting",
    which is independent of rendering and requires only structures Format, Formatting.
 
+5. [DBM: 2024.09.16; V 11.0]
+   Version 11 incorporates a number of changes suggested by JHR. See the version comment in
+   ./formatting.sig.
 *)

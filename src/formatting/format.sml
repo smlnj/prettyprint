@@ -34,7 +34,10 @@
  *     trivial Style structure to contain a "style = string" definition.
  *   Token remains separate (defined in base/token.sml, accessed via base.cm) and is referenced
  *     here but not re-exported. Device structures will depend on Token.
-*)
+ *
+ * Version 11.0 [2024.09]
+ *   See comment for Version 11 on formatting.sig.
+ *)
 
 (* structure Format:
  *   No signature  (hence no type abstraction).
@@ -83,7 +86,7 @@ datatype format =
       (* soft indent the format n spaces, sinilar to Hughes's nest *)
   | FLAT of format
       (* render (and measure) the format as flat *)
-  | STYLE of string * format
+  | STYLE of Style.style * format
       (* render with the (layered/cascading) logical style designated by the string *)
 
   (* conditional choice of formats *)
