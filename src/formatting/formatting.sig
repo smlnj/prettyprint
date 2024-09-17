@@ -1,5 +1,8 @@
 (* smlnj-lib/PrettyPrint/src/formatting.sig *)
 
+(* Design principle for this interface:  Keep things simple, but not "minimal".
+ * Have justifications for each included element based on actual usage. *)
+
 (* Version 7.
  *  -- The main interface of the new Prettyprinter.
  *  -- New: memoized measure for blocks (does not alter NEW_PP signature)
@@ -57,13 +60,13 @@
  *      alignedListMap
  *      optionMap
  *
- * Version 8.5 [2023.3.7]
+ * Version 8.5 [2023.03.07]
  *   Renamed:
  *     PRETTYPRINT -> FORMATTING
  *     PrettyPrint -> Formatting
  *     render and printing functions, and getLineWidth moved from Formatting (PrettyPrint) to printformat.sml
  *
- * Version 10.2 [2024.2.13]
+ * Version 10.2 [2024.02.13]
  *   Removed:
  *     setLineWidth   -- lineWidth is now a fixed attribute of a device
  *     resetLine
@@ -72,16 +75,44 @@
  *     printFormat    -- moved to PRINT_FORMAT
  *     printFormatLW
  *     printFormatNL
+ * 
+ * Version 11 [2024.09]
+ * Made some of JHR suggested changes.
+ *   Changed:
+ *     - xblock to xBlock, similarly xsequence -> xSequence;
+ *         thus uniformly using camel case for value variables, including function names.
+ *     - vHeaders -> renamed "vSequenceLabeled", with same type and label justification.
+ *   Added:
+ *     - langle, rangle - angle brackers or "grouping" formats  
+ *     - angleBrackets - enclosing a format in angle brackets 
+ *   Not Added:
+ *     - Did not include the suggested "closedSequenceWithMap" or "closedSequenceWithMap" functions
+ *       which are redundant, since you can get this effect by just composing one of the sequence 
+ *       functions with an ordinary map over the list of values.
+ *       Similar functions (ppSequence and ppClosedSequence) were provided in the (now redundant)
+ *       PPUtil: PPUTIL structure in the compiler (compiler/Basics/print/pputil.s??), but
+ *       in practice it was found less cumbersome to just do the mapping explicitly and then operate
+ *       on the resulting format list.
+ *     - vHeaders has been renamed vSequenceLabeled with the same type and label justification (left).
+ *       This function could be generalized in various ways, such as by providing a list of labels
+ *       matching the list of formats in order, possibly with a label justification argument
+ *       (e.g. LEFT, RIGHT, NOJUST).
+ *       Before adding such generalizations, we await convincing, real examples that require them.
+ *     - smlOption, smlTuple, smlList - for formatting SML option, tuple, and list values
+ *         We already had such functions, but named simply "option", "tuple", and "list".
+ *         This is consistent with the naming of "string", "bool", "int", which assume SML
+ *         primitive values. The difference is that here we are dealing with common compound values.
  *)
 
-(* Defines: signature FORMATTING, references Token *)
+(* Defines: signature FORMATTING, references base structures Format, Style, and Token *)
 
 signature FORMATTING =
 sig
 
   (* types *)
 
-    type format     (* abstract, defined in Format structure *)
+    type format = Format.format
+    (* "abstract" in Formatting in that the format data constructors are not re-exported *)
 
   (* break: used to separate format elements of a block
    *   space and conditional/unconditional line breaks, and a Null break for completeness *)
@@ -116,49 +147,63 @@ sig
     val char    : char -> format   (* c --> #"c" *)
     val bool    : bool -> format   (* true --> TEXT "true", false --> TEXT "false" *)
 
-    (* block-building functions, corresponding to SBLOCK and BLOCK data constructors *)
-    (* block -- the elements may include explicit breaks *)
+  (* some common SML data structures *)
+
+    val tuple : format list -> format  (* default packed alignment, formerly tupleFormats *)
+        (* formats as a tuple *)
+
+    val list : format list -> format  (* default packed alignment, formerly listFormats *)
+        (* formats as a list *)
+
+    val option : format option -> format
+        (* NONE --> "NONE", SOME fmt --> cBlock [text "SOME", parens fmt] *)
+
+  (* block-building functions, corresponding to SBLOCK and BLOCK format data constructors *)
 
     val block  : element list -> format
+    (* block -- the elements may include explicit breaks *)
 
-    (* ablock: building aligned blocks
+    val aBlock : alignment -> format list -> format
+    (* aBlock: building aligned blocks
      *   The alignement parameter determines the implicit break that occurs between formats in the list:
      *      H -> Space 1, P -> Soft 1, V -> Hard, C -> Null 
      *   empty argument list produces empty format,
      *   and empty format elements are "dropped", so, for example ablock [emtpy, empty] ==> empty. *)
 
-    val aBlock : alignment -> format list -> format
 
-    (* xblock: functions (for x = p, h, v, c) for building aligned blocks with a given alignment,
+    (* xBlock: functions (for x = p, h, v, c) for building aligned blocks with a given alignment,
      * the empty format acts like an identity element for all these format concatenation operators, in that
      * it does not contribute anything to the result, and the associated implicit breaks separating
      * empty formats from other elements are also dropped. Also, xblock [fmt] ==> fmt. *)
 
-    val hblock : format list -> format  (* = aBlock H *)
+    val hBlock : format list -> format  (* = aBlock H *)
         (* combinds a list of formats in an H-aligned block, with an implicit single space
          * (Space 1 break) between them *)
-    val pblock : format list -> format  (* = aBlock P *)
+    val pBlock : format list -> format  (* = aBlock P *)
         (* combinds a list of formats into a P-aligned (packed) block, with an implicit soft line break
          * (Soft 1) between them *)
-    val vblock : format list -> format  (* = aBlock V *)
+    val vBlock : format list -> format  (* = aBlock V *)
         (* combinds a list of formats in an V-aligned block, with an implicit hard line break
          * (Hard) between them *)
-    val cblock : format list -> format   (* = aBlock C *)
+    val cBlock : format list -> format   (* = aBlock C *)
         (* combinds a list of formats in a C-aligned block, with no break (or, implicitly, Null)
          * between them *)
 
-    (* a few "punctuation" characters as formats *)
+  (* a few "punctuation" and "grouping" or "bracketing" characters *)
 
     val comma : format     (* text "," *)
     val colon : format     (* text ":" *)
     val semicolon : format (* text ";" *)
     val period : format    (* text "." *)
+
     val lparen : format    (* text "(" *)
     val rparen : format    (* text ")" *)
     val lbracket : format  (* text "[" *)
     val rbracket : format  (* text "]" *)
     val lbrace : format    (* text "{" *)
     val rbrace : format    (* text "}" *)
+    val langle : format    (* text "<" *)
+    val rangle : format    (* text ">" *)
     val equal : format     (* text "=", an honorary punctuation mark *)
 
   (* wrapping or enclosing formats, plus appending newlines and prepending labels *)
@@ -174,6 +219,9 @@ sig
 
     val braces : format -> format
         (* like parens, but with lbrace and rbrace *)
+			       
+    val angleBrackets : format -> format			       
+        (* like parens, but with lanble and rangle *)
 
     val appendNewLine : format -> format
         (* append a newline to the format -- normally used for "top-level" printing *)
@@ -187,24 +235,16 @@ sig
         (* sequence a break fmts: inserts break between constituent fmts and aligns by a *)
 
     (* aligned sequence formatters, first argument is seperator format, e.g. (typically) comma *)
-    val hsequence : format -> format list -> format  (* = sequence H *)
-    val psequence : format -> format list -> format  (* = sequence P *)
-    val vsequence : format -> format list -> format  (* = sequence V *)
-    val csequence : format -> format list -> format  (* = sequence C *)
-
-    val tuple : format list -> format  (* default packed alignment, formerly tupleFormats *)
-        (* formats as a tuple *)
-
-    val list : format list -> format  (* default packed alignment, formerly listFormats *)
-        (* formats as a list *)
-
-    val option : format option -> format
-        (* formats a format option by producing text "NONE" or wrapping "SOME(.)" around the format *)
+    val hSequence : format -> format list -> format  (* = sequence H *)
+    val pSequence : format -> format list -> format  (* = sequence P *)
+    val vSequence : format -> format list -> format  (* = sequence V *)
+    val cSequence : format -> format list -> format  (* = sequence C *)
 
   (* vertical alignment with header strings *)
 
-    val vHeaders : {header1: string, header2: string} -> format list -> format
-
+    val vSequenceLabeled : {header1: string, header2: string} -> format list -> format
+    (* add (left-justified) header1 as label for the first line, with header2 as a left-justified
+     * label for successive lines.  Name changed from "vHeaders". *)
 
   (* indenting formats *)
 
@@ -224,6 +264,6 @@ sig
     val hvblock : format list -> format
 	(* acts as hblock if it fits, otherwise as vblock *)
 
-    val styled : string -> format -> format
+    val styled : Style.style -> format -> format
 
 end (* end FORMATTING *)

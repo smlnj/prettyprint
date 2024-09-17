@@ -1,10 +1,13 @@
-(* prettyprint/src/device/device-plain.sml *)
+(* prettyprint/src/device/plain-device.sml *)
 
-(* Version 10.2 (see device-notes.txt) *)
+(* Version 11 (see device-notes.txt) *)
 
-(* The PlainDevice structure implements a class of devices.
- * For the plain text device class , which is the default device.
- * mkDevice takes an outstream and a line length. *)
+(* The Plain_Device structure implements the class of plain text (default) devices.
+ * Devices in this class can differ in terms of their outstream and their line width.
+ *
+ * This structure may be redundant. It may be possible to replace it with the equivalent(?)
+ * plain text device structure from the PPDevice library assuming that structure matches our local
+ * DEVICE signature. *)
 
 structure Plain_Device : DEVICE =
 struct
@@ -48,15 +51,15 @@ fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
 (* token : device -> token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: Token.token) = ()
+fun token ({outstream,...}: device) (t: token) = ()
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)
 fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 
-(* withStyle : device -> M.mode * (unit -> 'r) -> 'r *)
-(* 'r |-> DT.renderState *)
+(* withStyle : ['r] device -> M.mode * (unit -> 'r) -> 'r *)
+(* When called withing the renderer, 'r instantiates to DT.renderState *)
 fun 'r withStyle (device: device) (mode: Mode.mode, thunk : unit -> 'r) : 'r =
      thunk ()
 
-end (* structure Plain_Device *)
+end (* structure Plain_Device : DEVICE *)

@@ -39,11 +39,11 @@ sig
    *)
 
   type token (* "physical", or "device", token *)
-   (* (1) the members of this type are meant to contain (possibly) device-dependent encodings of
-    *      "logical" tokens.
-    *      For instance, a logical token might be ("lambda",1), which would map, via a
-    *      "tokenmap" function to a device token (defined in, say, ANSITermDevice) that is
-    *      a unicode encoding of the greek lambda character (as a unicode string).
+   (* (1) The members of this type are meant to contain (possibly) device-dependent encodings of
+    *     "logical" tokens.
+    *     For instance, a logical token might be ("lambda",1), which would map, via a
+    *     "tokenmap" function to a device token (defined in, say, ANSITermDevice) that is
+    *     a unicode encoding of the greek lambda character (as an ascii string).
     * (2) if the token type is defined in a device, how can tokens appear in formats?
     *     The Format.format type uses a Token.token type that is independent of devices,
     *     and is defined in the Token structure. This is known as a "logical" token.
@@ -59,9 +59,9 @@ sig
   exception DeviceError
 
   val mkDevice : TextIO.outstream -> int -> device
-  (* the int is the linewidth of the device, assumed fixed.
+  (* The int is the linewidth of the device, assumed fixed and positive.
    * Why is this curried? It is for the convenience of creating multiple devices with different
-   * line widths but sharing the same outstream.  *)
+   * line widths but sharing a given outstream.  *)
 
   val resetDevice : device -> unit
   (* reset the internal state of the device to appropriate defaults
@@ -84,9 +84,9 @@ sig
   (* output a string in the device's current style to the device *)
 
   val token : device -> token -> unit
-  (* output a device token (i.e. a "physical" token), which was obtained by applying
-   * a tokenmap to a logical token (Token.token), and is assumed to have the size
-   * indicated by that logical token.
+  (* output a device token (i.e. a "physical" token), which is normally obtained by
+   * applying a tokenmap to a logical token (Token.token), and is assumed to have the
+   * "physical" size (in characters) associated with that logical token. *)
   
   val flush : device -> unit
   (* if the device's output stream is buffered, then flush any buffered output *)

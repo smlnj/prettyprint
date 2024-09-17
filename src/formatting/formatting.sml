@@ -144,11 +144,11 @@ fun aBlock alignment formats =
 (*** block building functions for non-indenting blocks ***)
 
 (* constructing aligned blocks: common abbreviations *)
-(* xblock : format list -> format, for x = h, v, p, c *)
-val hblock = aBlock F.H
-val vblock = aBlock F.V
-val pblock = aBlock F.P
-val cblock = aBlock F.C
+(* xBlock : format list -> format, for x = h, v, p, c *)
+val hBlock = aBlock F.H
+val vBlock = aBlock F.V
+val pBlock = aBlock F.P
+val cBlock = aBlock F.C
 
 (* "conditional" formats *)
 
@@ -195,6 +195,8 @@ val lbracket : format  = text "["
 val rbracket : format  = text "]"
 val lbrace : format    = text "{"
 val rbrace : format    = text "}"
+val langle : format    = text "<"
+val rangle : format    = text ">"
 val equal  : format    = text "="
 
 
@@ -213,6 +215,9 @@ val brackets = enclose {front = lbracket, back = rbracket}
 
 (* braces : format -> format *)
 val braces = enclose {front = lbrace, back = rbrace}
+
+(* angleBrackets: format -> format *)
+val angleBrackets = enclose {front = langle, back = rangle}
 
 (* appendNewLine : format -> format *)
 fun appendNewLine fmt = block [F.FMT fmt, F.BRK F.Hard]
@@ -234,7 +239,7 @@ fun alignmentToBreak F.H = F.Space 1
 
 (* sequence : alignement -> format -> format list -> format
  *  Format a sequence of formats, specifying alignment and separator format used between elements.
- *  The second argument (sep: format) is normally a symbol (TEXT) such as comma or semicolon *)
+ *  The second argument (sep: format) is typically a symbol (TEXT) such as comma or semicolon *)
 fun sequence (alignment: F.alignment) (sep: format) (formats: format list) =
     let val separate =
 	    (case alignment
@@ -245,11 +250,11 @@ fun sequence (alignment: F.alignment) (sep: format) (formats: format list) =
 		  end)
 	fun addBreaks nil = nil
 	  | addBreaks fmts =  (* fmts non-null *)
-	      let fun inter [fmt] = [F.FMT fmt]
-		    | inter (fmt :: rest) =  (* rest non-null *)
+	      let fun interpolate [fmt] = [F.FMT fmt]
+		    | interpolate (fmt :: rest) =  (* not (null rest) *)
 			F.FMT fmt :: (separate (inter rest))
-		    | inter nil = nil (* won't happen *)
-	       in inter fmts
+		    | interpolate nil = nil (* won't happen *)
+	       in interpolate fmts
 	      end
       in block (addBreaks formats)
      end

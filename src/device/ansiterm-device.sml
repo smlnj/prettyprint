@@ -1,15 +1,25 @@
 (* ansiterm-device.sml *)
 
+(* This structure may be redundant. It may be possible to replace it with the equivalent(?)
+ * ANSITerm structure from the PPDevice library assuming that structure matches our local
+ * DEVICE signature. *)
+
 structure ANSITerm_Device : DEVICE =
 struct
 
-local
+local (* imported structures *)
   structure T = Token
   structure AT = ANSITerm  (* smlnj-lib/Util/ansi-term.sml *)
 in
 
 structure Mode = ANSITerm_Mode  (* might some day be a parameter of DEVICE signature? *)
 
+(* A device style is a list of ANSITerm modes. *)
+type style = ANSITerm_Mode.mode list
+
+(* A device token is a string, perhaps including UTF-8 code sequences that can be interpreted
+ * by the terminal. *)
+type token = string
 
 (********* internal types *********)
 
@@ -176,17 +186,18 @@ fun newline ({outstream,...}: device) = TextIO.output1 (outstream, #"\n")
 (* output a string/character in the current style to the device *)
 fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
-(* token : device -> T.token -> unit *)
+(* token : device -> token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: T.token) = TextIO.output (outstream, T.string t)
+fun token ({outstream,...}: device) (t: token) = TextIO.output (outstream, t)
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)
 fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 
-(* renderStyled : device -> M.mode * (unit -> 'r) -> 'r *)
-(* 'r |-> DT.renderState *)
-fun 'r renderStyled (device: device) (mode: Mode.mode, renderThunk : unit -> 'r) : 'r =
+(* withStyle : device -> M.mode * (unit -> 'r) -> 'r *)
+(* formerly named renderStyled *)
+(* When called within the renderer, 'r instantiates to DT.renderState *)
+fun 'r withStyle (device: device) (mode: Mode.mode, renderThunk : unit -> 'r) : 'r =
     (pushState device mode;
      renderThunk ()
        before restoreState device)
