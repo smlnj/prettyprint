@@ -365,5 +365,6 @@ end (* structure Formatting *)
 
 5. [DBM: 2024.09.16; V 11.0]
    Version 11 incorporates a number of changes suggested by JHR. See the version comment in
-   ./formatting.sig.
+   ./formatting.sig.  Exported type format is defined to be the same as Format.format, but is
+   not "concrete" (i.e. not exported as a datatype).
 *)

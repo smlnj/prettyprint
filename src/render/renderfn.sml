@@ -1,4 +1,4 @@
-(* prettyprint/src/render.sml *)
+(* prettyprint/src/renderfn.sml *)
 
 (* Version 7.1
  *  the Render structure
@@ -31,16 +31,21 @@
  *  -- single Render structure for plain and asci terminal styling
  *
  * Version 10.2 [2024.1]
+ *  -- the Render structure becomes RenderFn functor, parameterized wrt the DEVICE signature
  *  -- separation of logical styles (strings) and physical (device) styles (modes)
  *  -- revision of the device stuff (DEVICE, Plain_Device, ANSITerm-Mode, ANSITerm_Device, RenderFn)
  *     Render structure becomes a functor RenderFn paramaterize wrt a Device structure.
  *  -- Device notion supports cascading styles for certain devices, the only one initially supported
  *     is ANSI terminal.  Rendering to a formatting language like HTML is a separate issue not covered
  *     by the device model.
+ *
+ * Version 11 [2024.09]
+ *  -- changed D.renderStyle to D.withStyle.
+ *  -- added definitions of types stylemap and tokenmap, which are parameters of the render function
  *)
 
 (* --------------------------------------------------------------------------------
- *  Render: the rendering functor (for devices such as plain and ansiterm)
+ *  RenderFn: the rendering functor (for devices such as plain and ansiterm)
  *    For rendering to the HTML 3 markup language, we define a separate _ad hoc_ HTMLRender structure.
  * -------------------------------------------------------------------------------- *)
 
@@ -57,8 +62,12 @@ in
 (* There is just one exported rendering function: render.
  * The flatRender function is defined and used within the render function, and is not exported. *)
 
-(* exporting Device structure (for types Device.Mode.stylemap and Device.device *)
+(* exporting Device structure (for type Device.device *)
 structure Device = D
+
+(* exported types *)
+type stylemap = Style.style -> D.style (* map "logical" styles to device styles *)
+type tokenmap = Token.token -> D.token (* map "logical" tokens to device tokens *)
 
 (* internal types *)
 
@@ -74,11 +83,12 @@ val renderState0 : renderState = (0, true)
 exception RenderError  (* diagnostic exception; should never be raised? *)
 fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderError)
 
-(* render : stylemap * D.device -> format -> unit
- *   stylemp: mapping from logical styles (string) to device modes (D.Mode.mode)
+(* render : stylemap * tokenmap * D.device -> format -> unit
+ *   stylemap: mapping from logical styles (string) to device modes (D.Mode.mode)
+ *   tokenmap: mapping from logical tokens to device tokens (e.g., Unicode codes)
  *   device: determines outstream and its associated lineWidth
- *   format: format  -- the format to be rendered and printed
- * The device, and hence the outstream and line width, are, assumed fixed during the rendering
+ *   format: format  -- the format to be rendered (i.e., displayed or printed)
+ * The device, and hence the outstream and line width, are assumed fixed during the rendering
  * of the given format. The top-level render function decides where to conditionally break lines,
  * and how much indentation should follow each line break, based on the line space available
  * (the difference between the currend column and the device line width). In this version (10.2),
@@ -88,7 +98,7 @@ fun error (msg: string) = (print ("PrettyPrint Error: " ^ msg); raise RenderErro
  * Internal rendering functions (render1, renderBLOCK, renderABLOCK) are (roughly) of type
  * renderState -> renderState.
  *)
-fun render (stylemap: D.Mode.stylemap, device: D.device) (format: F.format) : unit =
+fun render (stylemap: stylemap, tokenmap: tokenmap, device: D.device) (format: F.format) : unit =
     let val lineWidth = D.width device
 
         (* output functions specialized to the device *)
@@ -98,8 +108,8 @@ fun render (stylemap: D.Mode.stylemap, device: D.device) (format: F.format) : un
         val string = D.string device				   
 	val token = D.token device		      
 	fun flush () = D.flush device
-	fun renderStyled  (style: string, thunk: (unit -> renderState)) : renderState =
-	    D.renderStyled device (stylemap style, thunk)
+	fun renderStyled  (style: Style.style, thunk: (unit -> renderState)) : renderState =
+	    D.withStyle device (stylemap style, thunk)
 
 	(* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)
 	fun lineBreak n = (newline (); indent n)

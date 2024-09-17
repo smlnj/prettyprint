@@ -37,55 +37,62 @@ from the OCaml Format package.
 
 The PrettyPrint library is found in the prettyprint/src directory:
 
-- src/format.sml, the datatypes defining formats. The type format is exported as
-  an abstract type from Formatting
+- src/format.sml: the datatypes defining formats. The type format is re-exported as
+  from the Formatting structure as a quasi-abstract type
+  (i.e. Formatting.format == Format.format, but no data constructors
+  are exported from Formatting.)
 
-- src/measure.{sig,sml}, computing the static, flat measure of a format
+- src/measure.{sig,sml}: computing the static, flat measure of a format
 
-- src/render.{sig,sml}, rendering a format to printed characters
+- src/render.sig, src/renderfn.sml: rendering a format to printed characters
 
 - src/formatting.{sig,sml}, the interface used for writing formatter functions
     Defines `Formatting : FORMATTING`
 
 - src/printformats
 
-- src/source.cm, the CM file for compiling the prettyprinter,
+- src/source.cm: the CM file for compiling the prettyprinter,
 
 - prettyprint-lib.cm, the CM file for compiling the prettyprinter,
-  referring to src/prettyprint.cm.
+  referring to src/prettyprint.cm. (??? sourc.cm vs prettyprint-lib.cm ???)
 
-- CHANGELOG.md, the change log for the new prettyprint library.
+- device/device.sig
+
+- CHANGELOG.md: the change log for the new prettyprint library.
 
 The directory jhr is a copy (2024.09.10, 16:30 PDT) of smlnj-lib/Dev/PrettyPrint/new from
-the smlnj-lib-development branch of smlnj/smlnj. This is jhr's version of this PrettyPrint
-library.
+the smlnj-lib-development branch of smlnj/smlnj. This is jhr's
+modified version of this PrettyPrint library. Some, but not all, of
+his suggested changes have been adopted. See CHANGELOG.md for Version 11.
 
 The directory PPDevice is a copy (2024.09.10, 16:45 PDT) of the PPDevice directory
 from smlnj-lib/Dev/PPDevice in the smlnj-lib-development branch of smlnj/smlnj.
 
-Version 11 is a merge of the jhr version with the main (dbm) version in the
+Version 11 incorporates some changes from the jhr version with the main (dbm) version in the
 smlnj/prettyprint repository. It uses its own version of the Device signature that will be
 matched by the PPDevice device signature (PPDevice/src/pp-device.sig).
 
 In Version 11 there are some minor adjustments in formatting.{sig, sml} to incorporate
-minor jhr changes. The Device signature (srcdevice/device.sig) is modified to add style
-(physical device style) and token types (the "physical" token representation).  The
+several minor jhr changes. The Device signature (srcdevice/device.sig) is modified to add style
+(physical device style) and token types (the "physical" token representation). The
 renderer requires two mappings, one a stylemap mapping "logical" styles (e.g. "keyword")
 to a concrete device style type (e.g. lists of ANSITerm "modes" like "bold" and "red"),
 and the other a tokenmap that map logical tokens (defined in the Token structure) to
 possibly device-specific token encodings of the devise "physical" token type.
 
-Our device interface includes the "withStyle" function, formerly
-known as "renderStyled".
+The device interface (DEVICE) includes the "withStyle" function, formerly known as
+"renderStyled".
 
 There is still no support for any form of tab or tabulation functionality in Version 11.
-Some such functionality may be added in a future version.
+Some such functionality may be added in a future version. (For
+instance, once we understand Sam Westrick's "scoped" tabs.)
 
 ## Documentation
 
 [The documentation in the two adoc files is currently for Version 8.5,
 so they need to be updated for Version 11.0 to document devices, styles (logical and
-"physical"), tokens (logical and "physical"), stylemaps, and tokenmaps.]
+"physical"), tokens (logical and "physical"), stylemaps, and
+tokenmaps, and changes to the FORMATTING interface.]
 
 The following files are located in the doc directory:
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
