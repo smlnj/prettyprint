@@ -1,15 +1,15 @@
 # prettyprint
-A New (2023) SML/NJ Prettyprint library.
-Version 10.2 (2023.02)
+A New (2023-4) SML/NJ Prettyprint library.
 Version 11 (2024.09)
 
 This repository contains implementation files and documentation for new pretty printer
 library for SML/NJ. This is a two-phase pretty printer where a value to be prettyprinted
-is first mapped to a _format_, which is then _rendered_ to printed text (or, potentially,
-to some "layout" type, such as string).
+is first translated to a _format_, which is then _rendered_ to an
+output medium (a display, printed text, or a string). A format might also be
+translated another formatting language like HTML.
 
 This new prettyprinter is intended to be installed in smlnj-lib as an
-alternative to the earlier PP prettyprint library, which is derived
+alternative to the earlier PP prettyprint library, which was derived
 from the OCaml Format package.
 
 ## Features
@@ -25,7 +25,7 @@ from the OCaml Format package.
 
 - _indented_ formats, another format _modifier_.
   Indentation affects the complete content of a format.
-  Indentation is conditional: it is activated for an indented format if and only if the
+  Indentation is conditional: it is activated if and only if the indented
   format begins on a fresh line (immediately following that line's indentation).
 
 - styles (format modifier).
@@ -44,10 +44,10 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 - src/measure.{sig,sml}: computing the static, flat measure of a format
 
-- src/render.sig, src/renderfn.sml: rendering a format to printed characters
-
 - src/formatting.{sig,sml}, the interface used for writing formatter functions
     Defines `Formatting : FORMATTING`
+
+- src/render.sig, src/renderfn.sml: rendering a format to printed characters
 
 - src/printformats
 
@@ -56,9 +56,11 @@ The PrettyPrint library is found in the prettyprint/src directory:
 - prettyprint-lib.cm, the CM file for compiling the prettyprinter,
   referring to src/prettyprint.cm. (??? sourc.cm vs prettyprint-lib.cm ???)
 
-The device model. The render functor is parameterized over the DEVICE
-signature in device/device.sig. The question is whether this device
-model is "compatible" with the PPDevice library (in development for
+## The device model.
+
+The render functor is parameterized over the DEVICE
+signature defined in device/device.sig. It is possible that this device
+model is "compatible" with the PPDevice library (which JHR is developing
 the smlnj-lib library). I claim that the implementation of the ANSI
 term device here is simpler and cleaner than the one found in PPDevice.
 
@@ -71,15 +73,21 @@ term device here is simpler and cleaner than the one found in PPDevice.
   
 - device/ansiterm-device.sml: ANSI terminal device with device styles and tokens
 
+## Other files
+
 - CHANGELOG.md: the change log for the new prettyprint library.
 
-The directory jhr (temporary) is a copy (2024.09.10, 16:30 PDT) of smlnj-lib/Dev/PrettyPrint/new
-from the smlnj-lib-development branch of smlnj/smlnj. This is jhr's
-modified version of this PrettyPrint library. Some, but not all, of
-his suggested changes have been adopted. See CHANGELOG.md for Version 11.
+- PPDevice (directory)
+ 
+- jhr (directory)
 
 The directory PPDevice is a copy (2024.09.10, 16:45 PDT) of the PPDevice directory
 from smlnj-lib/Dev/PPDevice in the smlnj-lib-development branch of smlnj/smlnj.
+
+The temporary directory jhr is a copy (as of 2024.09.10, 16:30 PDT) of
+smlnj-lib/Dev/PrettyPrint/new from the smlnj-lib-development branch of smlnj/smlnj. This
+is jhr's modified version of this PrettyPrint library. Some, but not all, of his suggested
+changes have been adopted. See CHANGELOG.md for Version 11.
 
 Version 11 incorporates some changes from the jhr version with the main (dbm) version in the
 smlnj/prettyprint repository. It uses its own version of the Device signature that will be
@@ -108,6 +116,7 @@ so they need to be updated for Version 11.0 to document devices, styles (logical
 tokenmaps, and changes to the FORMATTING interface.]
 
 The following files are located in the doc directory:
+
 - doc/str-PrettyPrint.{adoc, html}, the interface documentation
 
 - doc/prettyprint-manual.{adoc, html}, the manual for the prettyprinter library
