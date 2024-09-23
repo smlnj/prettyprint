@@ -1,0 +1,15 @@
+prettyprint/todo.txt
+
+* Add a spaces: int -> format function to formatting.s??.
+
+* Check that prettyprint compiles and works on some test cases
+
+* Add tests directory with test cases (including contents of examples?).
+
+* Check whether devices in PPDevices are compatible with the local
+device model in ./devices/.
+  
+* Critique of PPDevices interfaces and implementations.
+
+* Update adoc files in .doc/ directory.
+  - Document devices, styles and tokens (logical and physical).
