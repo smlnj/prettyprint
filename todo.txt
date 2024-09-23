@@ -3,6 +3,7 @@ prettyprint/todo.txt
 * Add a spaces: int -> format function to formatting.s??.
 
 * Check that prettyprint compiles and works on some test cases
+  (e.g., in examples)
 
 * Add tests directory with test cases (including contents of examples?).
 
