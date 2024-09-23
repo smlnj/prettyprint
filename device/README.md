@@ -1,15 +1,20 @@
-prettyprint/device/device-notes.txt
+prettyprint/device/README.md
 
 #PrettyPrint
 
-This is a new library to support writing pretty printers. The design of the library is
-based on ideas from the Wadler-Lein Haskell package and the PPML pretty printer
-meta language used in the Centaur system designed at INRIA Sophia in the 1980s.
-It is purely-functional (strict). The user interface (structure Formatting) is designed
-for utility rather than minimality.  Prettyprinting is done in two phases: (1)
-construction of a *format* data structure, and (2) rendering a format to an output
-medium (i.e., a display or printer).  It is also possible to translate a format to
-another formatting language like HTML.
+This is a device library for use with the new prettyprinter library (lets call it the
+DBM_PP library for now). The device abstraction models an output or display facility for
+use by the rendering phase of a pretty printer. A device defines a line length for the
+output device. It can also support device specific "styles" for highlighting text and
+device specific "tokens" or special symbols (typically Unicode symbols).
+
+Initially there are just two specific devices definded. Plain_Device for printing to
+plain (i.e., ASCII) text, and ANSITerm_Device for printing to an ANSII terminal (emulator)
+that support certain text highlighting modes and that can render at least some Unicode
+glyphs. The (DBM_PP) prettyprint library
+
+This device library is simpler and more basic than the PPDevice library proposed by JHR,
+providing just the a essential functionality used by out format renderer.
 
 ## Files
 

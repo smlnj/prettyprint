@@ -1,5 +1,5 @@
 # prettyprint
-A New (2023-4) SML/NJ Prettyprint library.
+DBM_PP: A New SML/NJ Prettyprint library.
 Version 11 (2024.09)
 
 This repository contains implementation files and documentation for new pretty printer
@@ -8,11 +8,22 @@ is first translated to a _format_, which is then _rendered_ to an
 output medium (a display, printed text, or a string). A format might also be
 translated another formatting language like HTML.
 
-This new prettyprinter is intended to be installed in smlnj-lib as an
-alternative to the earlier PP prettyprint library, which was derived
-from the OCaml Format package.
+The design of this library is based on two sources: (1) the Wadler-Leijen prettyprinter
+libraries developed in the Haskell community, and (2) the PPML prettyprinter meta-language
+used in the Centaur system developed at INRIA Sophia-Antipolis in the 1980s.
 
-## Features
+The device directory contains a basic, local version of an implementation of a _device_
+abstraction which is used by the rendering phase for output (including potentially with
+highlighted text and special symbols).
+
+This new prettyprinter is intended to be installed in smlnj-lib as an alternative to the
+earlier PP prettyprint library, which was derived from the OCaml Format package.
+
+As a working title, we call this prettyprint library DBM_PP to distinguish it from the
+existing PP library in the smlnj-lib collection.  It has been in development over the last
+two years (2023-2024).
+
+## Features of the prettyprinting model
 
 - _flat_, _static_ measure of formats
 
@@ -28,10 +39,14 @@ from the OCaml Format package.
   Indentation is conditional: it is activated if and only if the indented
   format begins on a fresh line (immediately following that line's indentation).
 
-- styles (format modifier).
+- styles (a format modifier).
   Generic styles are just strings, which have to be interpreted to
   impose styles for a given output target.
   Output targets supporting styles are ANSI terminals and rendering to HTML 3 (smlnj-lib/HTML).
+
+- tokens (a basic, atomic format)
+  Tokens represented special symbols (typically to be rendered as Unicode codes) such
+  as the Greek letter lambda.
 
 ## Files
 
@@ -58,18 +73,18 @@ The PrettyPrint library is found in the prettyprint/src directory:
 
 ## The device model.
 
-The render functor is parameterized over the DEVICE
-signature defined in device/device.sig. It is possible that this device
-model is "compatible" with the PPDevice library (which JHR is developing
-the smlnj-lib library). I claim that the implementation of the ANSI
-term device here is simpler and cleaner than the one found in PPDevice.
+Rendering formats is implemented by a RenderFn functor, which is parameterized over the
+DEVICE signature defined in device/device.sig. It is possible that this device model is
+"compatible" with the PPDevice library (which JHR is developing the smlnj-lib library).
+However, I claim that the implementation of the ANSI term device here is simpler and
+cleaner than the one found in PPDevice.
 
 - device/device.cm
 
 - device/device.sig
 
 - device/plain-device.sml: plain text output device with no device
-  styles or tokens
+  styles or tokens (that is, device and token are trivial types (= unit)).
   
 - device/ansiterm-device.sml: ANSI terminal device with device styles and tokens
 
@@ -102,7 +117,9 @@ and the other a tokenmap that map logical tokens (defined in the Token structure
 possibly device-specific token encodings of the devise "physical" token type.
 
 The device interface (DEVICE) includes the "withStyle" function, formerly known as
-"renderStyled".
+"renderStyled". This function allows logical styles to be "applied" to the text of
+a format. Logical styles are translated to device-specific styles by a stylemap function
+passed as a parameter to the render function.
 
 There is still no support for any form of tab or tabulation functionality in Version 11.
 Some such functionality may be added in a future version. (For
