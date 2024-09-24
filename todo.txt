@@ -13,4 +13,8 @@ device model in ./devices/.
 * Critique of PPDevices interfaces and implementations.
 
 * Update adoc files in .doc/ directory.
-  - Document devices, styles and tokens (logical and physical).
+  - Document devices, styles and tokens (logical and physical) in the
+    manual.
+  - Update the interface descriptions to make them accurate.
+
+
