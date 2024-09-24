@@ -206,6 +206,8 @@ sig
     val langle : format    (* text "<" *)
     val rangle : format    (* text ">" *)
 
+    val spaces : int -> format  (* a format consisting of n spaces as a text *)
+
   (* wrapping or enclosing formats, plus appending newlines and prepending labels *)
 
     val enclose : {front: format, back: format} -> format -> format

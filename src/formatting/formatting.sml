@@ -209,6 +209,11 @@ val rbrace : format    = text "}"
 val langle : format    = text "<"
 val rangle : format    = text ">"
 
+(* spaces: int -> format
+ * mainly for use in  aligned blocks to avoid having to resort to basic blocks and
+ * the Space break *)
+fun spaces (n: int) : format =
+    text (StringCvt.padLeft #" " n "")
 
 (*** wrapping or closing formats, e.g. parenthesizing a format ***)
 
