@@ -1,4 +1,4 @@
-# CHANGELOG for PrettyPrint, the New Prettyprinter Library
+# CHANGELOG for PrettyPrint, aka the New DBM_PP Prettyprinter Library
 
 ## PrettyPrint Change Log:
 
@@ -260,7 +260,16 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
   typeface for the particular ANSITerm terminal has a bold font in its font family.  (The
   inconsolata type face I use in emacs does not, so no bold effect is available.
 
-**Version 10.2 (2024.1)
+**Version 10.2 [2024.1]**
+
+- Removed:
+	setLineWidth   -- lineWidth is now a fixed attribute of a device
+	resetLine
+	getLineWidth
+	render
+	printFormat    -- moved to PRINT_FORMAT
+	printFormatLW
+	printFormatNL
 
 - Revised version of Device: DEVICE such that a device is a simple record value rather
   than an "object-like" record of functions. A device type needs to specify and output
@@ -288,7 +297,7 @@ Introduced rendering with styled text for ANSI terminals and for rendering to HT
 - The name of the library remains as "Prettyprint" for the time being, but may change.
 
 
-**Note on ANSI terminal variations
+**Note on ANSI terminal variations**
 
 For prettyprinting, we are only interested those ANSI escape codes that control
 attributes of displayed text (font, color, underlining, weight, density, and blinking).
@@ -302,3 +311,87 @@ typeface used by emacs for the shell buffer).In general, the effect of some code
 for boldface) may depend on the typeface used by the terminal emulator, in particular on
 the set of fonts available for that typeface. What happens when multiple codes are
 combined can also vary between terminal emulations.
+
+
+**Version 11.0 [2024.09]**
+
+Made some of JHR suggested changes.
+
+- Changed:
+
+	- xblock to xBlock, similarly xsequence -> xSequence;
+		thus uniformly using camel case for value variables, including function names.
+
+	- vHeaders -> renamed "vSequenceLabeled", with same type and
+      default label justification.
+
+- Added:
+
+	- langle, rangle: angle brackers or "grouping" formats  
+
+	- angleBrackets: enclosing a format in angle brackets 
+
+    - spaces : int -> format, a somewhat redundant format-building
+      function that may be useful to add ad hoc spacing in aligned
+      blocks, where otherwise one would have to use a basic block with
+	  Space breaks.
+
+- Not Added:
+
+	- I did not include the suggested "sequenceWithMap" and "closedSequenceWithMap" functions
+	  which are redundant, since you can get the same effect by just composing one of the sequence 
+	  functions with an ordinary map over the list of values.
+	  Similar functions (ppSequence and ppClosedSequence) were provided in the (now redundant)
+	  PPUtil: PPUTIL structure in the compiler (compiler/Basics/print/pputil.s??), but
+	  in practice it has been found to be less cumbersome to just do the mapping explicitly and
+      then operate on the resulting format list.
+
+	- I renamed vHeaders to vSequenceLabeled with the same type and label justification (left).
+	  This function could be generalized in various ways, such as by providing a list of labels
+	  matching the list of formats in order, possibly with a label justification argument
+	  (e.g. LEFT, RIGHT, NOJUST). Before adding such generalizations, I await convincing, real
+      examples that require them.
+
+	- smlOption, smlTuple, smlList - for formatting SML option, tuple, and list values
+	  We already had such functions, but named simply "option", "tuple", and "list".
+	  This is consistent with the naming of "string", "bool", "int", which assume SML
+      primitive values. The difference is that here we are dealing with common compound values.
+
+JHR has suggested that his (under development) PPDevice library should
+be used as the interface and implementation for prettyprint devices. I
+strongly prefer the simpler device model provided in the prettyprint/device
+directory (from the smlnj/prettyprint repository). Let's call this the DBM
+device model.
+
+1. This device model is simpler and has fewer layers of complexity. In
+   particular, it has a functional interface and does not expose
+   functions that manipulate the _state_ of a device such as the pushStyle
+   and popStyle functions.
+
+2. This device model defines styles in terms of sets of text highlighting attributes,
+   where the highlighting attributes are determined by the nature of the underlying
+   physical device, such as an ANSI terminal. Instead, the PPDevice model defines styles
+   (for ANSI terminal devices) in terms of commands or operations (from the ANSITerm
+   library structure) that alter the current state of the device (terminal). Logically
+   this is more complex and more difficult to manage.  In the DBM device model, a terminal
+   has an internal state with respect to text highlighting cosisting of a set of text
+   attributes such as Bold and Red, and applying a style (defined as a list of such
+   attributes) consists of _overlaying_ the style's attributes on the current set of
+   terminal attributes (the "termState"). Undoing the application of a style is achieved
+   by restoring a saved terminal state, rather than trying to reverse the effect of 
+   a sequence of attribute-changing commands.
+   
+3. As a specific instance, the ANSITerm.REV command does not have a clear meaning as an
+   element of the terminal state, which includes foreground and background color attributes
+   as part of the state. Also, I do not consider the INVIS command as useful in the
+   context of prettyprinting, so I have not included a corresponding invis attribute in
+   the terminal state (but that could be done if there is a strong enough justification).
+   
+4. I don't believe a translation of formats to another layout formalism like html should
+   be implemented using the device model. The src/html directory provides a prototype example of
+   another approach, defining a sort of _homomorphism_ between the two layout formalisms.
+   
+    
+   
+   
+   
