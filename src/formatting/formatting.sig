@@ -78,13 +78,16 @@
  * 
  * Version 11 [2024.09]
  * Made some of JHR suggested changes.
- *   Changed:
+ *   Changed (in Formatting: FORMATTING, src/formatting/formatting.s* ):
  *     - xblock to xBlock, similarly xsequence -> xSequence;
  *         thus uniformly using camel case for value variables, including function names.
- *     - vHeaders -> renamed "vSequenceLabeled", with same type and label justification.
- *   Added:
+ *     - vHeaders -> renamed "vSequenceLabeled", taking lists of label strings and formats
+ *                   and leaving label justification to two new auxiliary functions.
+ *   Added (in Formatting: FORMATTING, src/formatting/formatting.s* ):
  *     - langle, rangle - angle brackers or "grouping" formats  
  *     - angleBrackets - enclosing a format in angle brackets 
+ *     - spaces - creates text formats consisting of n spaces
+ *     - justifyRight, justifyLeft - justifying label strings for use with vSequenceLabeled
  *   Not Added:
  *     - Did not include the suggested "closedSequenceWithMap" or "closedSequenceWithMap" functions
  *       which are redundant, since you can get this effect by just composing one of the sequence 
@@ -93,11 +96,8 @@
  *       PPUtil: PPUTIL structure in the compiler (compiler/Basics/print/pputil.s??), but
  *       in practice it was found less cumbersome to just do the mapping explicitly and then operate
  *       on the resulting format list.
- *     - vHeaders has been renamed vSequenceLabeled with the same type and label justification (left).
- *       This function could be generalized in various ways, such as by providing a list of labels
- *       matching the list of formats in order, possibly with a label justification argument
- *       (e.g. LEFT, RIGHT, NOJUST).
- *       Before adding such generalizations, we await convincing, real examples that require them.
+ *     - vHeaders has been renamed vSequenceLabeled with a more general type.
+ *       Label justification has been left to two nwq auxiliary functions, justifyRight, justifyLeft.
  *     - smlOption, smlTuple, smlList - for formatting SML option, tuple, and list values
  *         We already had such functions, but named simply "option", "tuple", and "list".
  *         This is consistent with the naming of "string", "bool", "int", which assume SML
@@ -242,11 +242,18 @@ sig
     val vSequence : format -> format list -> format  (* = sequence V *)
     val cSequence : format -> format list -> format  (* = sequence C *)
 
-  (* vertical alignment with header strings *)
+  (* vertical alignment with label strings *)
 
-    val vSequenceLabeled : {header1: string, header2: string} -> format list -> format
-    (* add (left-justified) header1 as label for the first line, with header2 as a left-justified
-     * label for successive lines.  Name changed from "vHeaders". *)
+    val vSequenceLabeled : string list -> format list -> format
+    (* add strings as labels for the corresponding formats, repeating the last label
+     * for the remaining formats when there are fewer labels than formats.
+     * Originally named "vHeaders", taking a pair of labels. *)
+
+    val justifyRight : string list -> string list
+    val justifyLeft : string list -> string list
+    (* auxiliary functions to be used with vSequenceLabeled. They make all the label
+     * strings have the same size by padding on the left or right, respectively.
+     *)
 
   (* indenting formats *)
 
@@ -263,7 +270,7 @@ sig
 	(* if the first format fits flat, use it, otherwise render the second format,
 	   NOTE: the two argument formats may not have the same content! But usually they should! *)
 
-    val hvblock : format list -> format
+    val hvBlock : format list -> format
 	(* acts as hblock if it fits, otherwise as vblock *)
 
     val styled : Style.style -> format -> format

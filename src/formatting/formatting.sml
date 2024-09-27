@@ -45,10 +45,10 @@
  *   -- removed:
  *      tuple [i.e. the function that should have been called tupleMap; tupleFormat renamed as "tuple"]
  *      binary xcat functions, replaced by calls of corresponding xblock but with lists of 2 formats:
- *      hcat [hcat (f1, f2) -> hblock [f1,f2]]
- *      pcat [-> pblock]
- *      vcat [-> vblock]
- *      ccat [-> cblock]
+ *      hcat [hcat (f1, f2) -> hblock [f1,f2] -> hBlock [f1,f2] in 11.0]
+ *      pcat [-> pblock (-> pBlock in 11.0)]
+ *      vcat [-> vblock (-> vBlock in 11.0)]
+ *      ccat [-> cblock (-> cBlock in 11.0)]
  *  
  *      The map versions of various functions: (these are not used anywhere in SML/NJ?)
  *      sequenceMap
@@ -75,7 +75,7 @@
  *   Thus eliminating the need for the trivial Style structure.
  *
  * Version 11.0 [2024.09]
- *   See comment for Version 11 on formatting.sig.
+ *   See comment for Version 11 in formatting.sig or ../../CHANGELOG.md
  *)
 
 (* Defines:
@@ -167,8 +167,8 @@ fun tryFlat (fmt: format) = F.ALT (F.FLAT fmt, fmt)
 (* alt : format * format -> format *)
 val alt = F.ALT
 
-(* hvblock : format list -> format *)
-fun hvblock fmts = tryFlat (vblock fmts)
+(* hvBlock : format list -> format *)
+fun hvBlock fmts = tryFlat (vBlock fmts)
 
 
 (*** format-building utility functions for some primitive types ***)
@@ -186,7 +186,7 @@ fun string (s: string) : format =
     text (String.concat ["\"", String.toString s, "\""])  (* was using PrintUtil.formatString *)
 
 (* char : char -> format *)
-fun char (c: char) = cblock [text "#", string (Char.toString c)]
+fun char (c: char) = cBlock [text "#", string (Char.toString c)]
 
 (* bool : bool -> format *)
 fun bool (b: bool) = text (Bool.toString b)
@@ -220,7 +220,7 @@ fun spaces (n: int) : format =
 (* enclose : {front : format, back : format} -> format -> format *)
 (* tight -- no space between front, back, and fmt *)
 fun enclose {front: format, back: format} fmt =
-    cblock [front, fmt, back]
+    cBlock [front, fmt, back]
 
 (* parens : format -> format *)
 val parens = enclose {front = lparen, back = rparen}
@@ -239,7 +239,7 @@ fun appendNewLine fmt = block [F.FMT fmt, F.BRK F.Hard]
 
 (* label : string -> format -> format *)
 (* labeled formats, i.e. formats preceded by a string label, a commonly occurring pattern *)
-fun label (str:string) (fmt: format) = hblock [text str, fmt]
+fun label (str:  string) (fmt: format) = hBlock [text str, fmt]
 
 
 (*** functions for formatting sequences of formats (format lists) ***)
@@ -294,40 +294,59 @@ fun list (formats: format list) = brackets (psequence comma formats)
 fun option (formatOp: format option) =
     case formatOp
       of NONE => text "NONE"
-       | SOME fmt => cblock [text "SOME", parens fmt]
+       | SOME fmt => cBlock [text "SOME", parens fmt]
 
-(*** vertical formatting with headers ***)
+(*** vertical formatting with labels ***)
 
-(* header1 and header2 are header strings for the first item and subsequent items,
- * respectively. We vertically align the element formats, taking account of the possibly
- * that the two header strings have different sizes by left-padding the shorter header
- * string, using the padHeaders function, to equalize the sizes of the headers. *)
+(* vSequenceLabeled : string list -> format list -> format (was vHeaders)
+ * Given a labels: string list, and formats: format list,
+ * vertically allign the formats with the corresponding labels prepended using hBlock.
+ * If there are more labels than formats, the extra labels are ignored.
+ * If there are fewer labels than formats, the last label is repeated as many times
+ * as necessary to match the formats.
+ * A common case is that there are just two labels, with the second being repeated,
+ * if necessary.
+ * The labels can be pre-justified (left or right) to make them all have the same length
+ * using the justifyLeft and justifyRight functions defined below, which also guarantee
+ * that the labels all have the same length after justification.
+ * ASSERT: if not (null formats) then not (null labels)
+ *   if the assertion fails, raises Fail.
+ *)
 
-(* padleft : string * string -> string * string *)
-(* pad the shorter string with spaces on the left to make them the same size.
- * ASSERT: (s1', s2') = pad (s1, s2) => size s1' = size s2' = max (size s1, size s2). *)
-fun padHeaders (s1, s2) =
-    let val maxsize = Int.max (size s1, size s2)
-     in (StringCvt.padLeft #" " maxsize s1,
-	 StringCvt.padLeft #" " maxsize s2)
+fun vSequenceLabeled (labels: string list) (formats: format list) : format =
+    let fun combine (nil, nil, acum) = rev acum
+	  | combine (nil, _, _) = raise Fail "vSequence: no labels"
+	  | combine (labels as (label::nil), fmt::formats, acum) = 
+	    combine (labels, formats, hBlock [text label, fmt] :: acum)
+	  | combine (label::labels, fmt::formats, acum) = 
+	    combine (labels, fmormats, hBlock [text label, fmt] :: acum)
+     in vBlock (combine (labels, formats, nil))
     end
 
-(* vSequenceLabeled (was vHeaders) : {header1 : string, header2 : string} -> format list -> format *)
-fun vSequenceLabeled {header1: string, header2: string} (elems: format list) =
-    let val (header1, header2) = padHeaders (header1, header2)
-     in case elems
-	  of nil => empty
-	   | elem :: rest =>
-	       vblock
-		 (hblock [text header1, elem] ::
-		  map (fn fmt => hblock [text header2, fmt]) rest)
+(* justifyRight : string list -> string list
+ * pad the shorter strings in labels with spaces on the left to make all labels the same size.
+ * ASSERT: let labels' = justifyRight labels
+           => sameSizes labels' and
+	      All x in labels'. size x = max (map size labels). *)
+fun justifyRight (labels: string list) =
+    let val maxSize = foldl Int.max 0 (map size labels)
+     in map (fn s => StringCvt.padLeft #" " maxSize s) labels
     end
 
+(* justifyLeft : string list -> string list
+ * pad the shorter strings in labels with spaces on the right to make all labels the same size.
+ * ASSERT: let labels' = justifyLeft labels
+           => sameSizes labels' and
+              All x in labels'. size x = max (map size labels). *)
+fun justifyLeft (labels: string list) =
+    let val maxSize = foldl Int.max 0 (map size labels)
+     in map (fn s => StringCvt.padRight #" " maxSize s) labels
+    end
 
 (*** "indenting" formats ***)
 
-(* indent : ([n:] int) -> format -> format *)
-(* When applied to EMPTY, produces EMPTY
+(* indent : ([n:] int) -> format -> format
+ * When applied to EMPTY, produces EMPTY
  * The resulting format is soft-indented n _additional_ spaces,
  *   i.e. indents an additional n spaces iff following a line break with its indentation. *)
 fun indent (n: int) (fmt: format) =
@@ -335,8 +354,8 @@ fun indent (n: int) (fmt: format) =
        of F.EMPTY => F.EMPTY
         | _ => F.INDENT (n, fmt))
 
-(* styled : string -> format -> format *)
-fun styled (style: string) (format: format) = F.STYLE (style, format)
+(* styled : Style.style -> format -> format *)
+fun styled (style: Style.style) (format: format) = F.STYLE (style, format)
 
 end (* top local *)
 end (* structure Formatting *)
@@ -353,9 +372,8 @@ end (* structure Formatting *)
    functions (formatSeq, formatClosedSeq, tuple, list, alignedList) can be viewed as redundant.
 
 2. [DBM: 2022.10.24]
-   basicBlock and alignedBlock revised so that a block with a single format member reduces to
-   that format.  This prevents trivial nesting of blocks nesting of blocks,
-   e.g. block(block(block(...))).
+   basic block and aligned blocks revised so that a block with a single format member reduces to
+   that format.  This prevents trivial nesting of blocks, e.g. block(block(block(...))).
 
 3. [DBM: 2023.3.1; V 8.4]
    basicBlock -> block, alignedBlock -> aBlock, and other renamings: see Version 8.4

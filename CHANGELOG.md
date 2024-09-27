@@ -322,8 +322,9 @@ Made some of JHR suggested changes.
 	- xblock to xBlock, similarly xsequence -> xSequence;
 		thus uniformly using camel case for value variables, including function names.
 
-	- vHeaders -> renamed "vSequenceLabeled", with same type and
-      default label justification.
+	- vHeaders -> replaced by "vSequenceLabeled", with a more general type
+      and delegating label justification to preprocessing the label
+      list with one of two new auxiliary functions, justifyRight and justifyLeft
 
 - Added:
 
@@ -335,6 +336,10 @@ Made some of JHR suggested changes.
       function that may be useful to add ad hoc spacing in aligned
       blocks, where otherwise one would have to use a basic block with
 	  Space breaks.
+	  
+	- justifyRight, justifyLeft, auxiliary functions meant to be used
+      in conjunction with the new vSequenceLabeled function to justify
+      lists of labels by padding with spaces on the left, respectively right.
 
 - Not Added:
 

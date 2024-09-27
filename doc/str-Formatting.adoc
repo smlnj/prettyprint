@@ -47,38 +47,44 @@ val char : char -> format     (* c --> #"c" *)
 val bool : bool -> format     (* true --> TEXT "true", false --> TEXT "false" *)
 
 val block : element list -> format  (* basic block construction *)
-val ablock : alignment -> format list -> format  (* aligned block construction *)
+val aBlock : alignment -> format list -> format  (* aligned block construction *)
 
-val hblock : format list -> format   (* = ablock H *)
-val vblock : format list -> format   (* = ablock V *)
-val pblock : format list -> format   (* = ablock P *)
-val cblock : format list -> format   (* = ablock C *)
+val hBlock : format list -> format   (* = aBlock H *)
+val vBlock : format list -> format   (* = aBlock V *)
+val pBlock : format list -> format   (* = aBlock P *)
+val cBlock : format list -> format   (* = aBlock C *)
 
 val comma : format     (* text "," *)
 val colon : format     (* text ":" *)
 val semicolon : format (* text ";" *)
 val period : format    (* text "." *)
+val equal : format     (* text "=", an honorary punctuation mark *)
+
 val lparen : format    (* text "(" *)
 val rparen : format    (* text ")" *)
 val lbracket : format  (* text "[" *)
 val rbracket : format  (* text "]" *)
 val lbrace : format    (* text "{" *)
 val rbrace : format    (* text "}" *)
-val equal : format     (* text "=", an honorary punctuation mark *)
+val langle : format    (* text "<" *)
+val rangle : format    (* text ">" *)
+
+val spaces : int -> format
 
 val enclose : {front: format, back: format} -> format -> format
 val parens : format -> format
 val brackets : format -> format
 val braces : format -> format
+val angleBrackets : format -> format
 
 val appendNewLine : format -> format
 val label : string -> format -> format
 
 val sequence : alignment -> format -> format list -> format
-val hsequence : format -> format list -> format
-val psequence : format -> format list -> format
-val vsequence : format -> format list -> format
-val csequence : format -> format list -> format
+val hSequence : format -> format list -> format
+val pSequence : format -> format list -> format
+val vSequence : format -> format list -> format
+val cSequence : format -> format list -> format
 
 val tuple  : format list -> format
 val list   : format list -> format
@@ -90,7 +96,7 @@ val indent : int -> format -> format
 
 val tryFlat : format -> format
 val alt : format * format -> format
-val hvblock : format list -> format
+val hvBlock : format list -> format
 
 val styled : string -> format -> format
 ----
@@ -98,13 +104,13 @@ val styled : string -> format -> format
 == Description
 
 `[.kw]#type# format`::
-  The type constructor for formats (abstract).
+  The type constructor for formats (= Format.format).
 
 `[.kw]#datatype# break = Hard | Soft of int | Space of int | Null`::
   The type of breaks in basic blocks.
 
 `[.kw]#datatype# element = FMT of format | BRK of break`::
-  The type of elements making up a basic block.
+  The type of elements making up a basic block, either a format or a break.
 
 `[.kw]#datatype# alignment = H | P | V | C`::
   The type of alignments in aligned blocks: horizontal, packed, vertical, and compact.
@@ -113,7 +119,7 @@ val styled : string -> format -> format
   The empty format that prints nothing when rendered, equivalent to (`text ""`). Empty formats are
   absorbed by adjacent nonempty formats, so that no "separation" whitespace will be printed between and
   empty format and adjacent nonempty formats. Empty serves as an identity element for binary
-  format concatenation operators. For instance, `hblock (fmt, empty) == fmt`.
+  format concatenation operators. For instance, `hBlock (fmt, empty) == fmt`.
 
 `[.kw]#val# text : string \-> format`::
   Create an atomic "text" block consisting of a string, which renders as that string.
@@ -124,23 +130,23 @@ val styled : string -> format -> format
 `[.kw]#val# block : element list \-> format`::
   Build a block with _ad hoc_ alignment determined by explicit breaks among the elements.
 
-`[.kw]#val# ablock : alignment \-> format list \-> format`::
+`[.kw]#val# aBlock : alignment \-> format list \-> format`::
   Build an aligned block with the specified alignment and format components.
 
-`[.kw]#val# hblock : format list \-> format`::
-  `hblock fmts` : Create a horizontally aligned block (with implicit (Space 1) breaks) with
+`[.kw]#val# hBlock : format list \-> format`::
+  `hBlock fmts` : Create a horizontally aligned block (with implicit (Space 1) breaks) with
   fmts as components.
 
-`[.kw]#val# vblock : format list \-> format`::
-  `vblock fmts` : Create a vertically aligned block (with implicit Hard breaks) with
+`[.kw]#val# vBlock : format list \-> format`::
+  `vBlock fmts` : Create a vertically aligned block (with implicit Hard breaks) with
   fmts as components.
 
-`[.kw]#val# pblock : format list \-> format`::
-  pblock fmts : Create a "packed" aligned block (with implicit (Soft 1) breaks) with fmts
+`[.kw]#val# pBlock : format list \-> format`::
+  `pBlock fmts` : Create a "packed" aligned block (with implicit (Soft 1) breaks) with fmts
   as components.
 
-`[.kw]#val# cblock : format list \-> format`::
-  `cblock fmts` : Create a "compact" aligned block with fmts as components, with no breaks
+`[.kw]#val# cBlock : format list \-> format`::
+  `cBlock fmts` : Create a "compact" aligned block with fmts as components, with no breaks
   between components.
 
 ////
@@ -155,7 +161,7 @@ val styled : string -> format -> format
   `integer n` : Returns the string representation of n (`Int.toString n`) as a text format.
 
 `[.kw]#val# string : string \-> format`::
-  `string s` : Formats the string s enclosed in double quotation marks.
+  `string s` : Formats the string `s` enclosed in double quotation marks.
 
 `[.kw]#val# char : char \-> format`::
    `char c` : Formats c as `# ^ (string (Char.toString c))`.
@@ -164,7 +170,7 @@ val styled : string -> format -> format
   `bool b` : Formats the boolean b as `true` or `folse`.
 
 `[.kw]#val# enclose : {front: format, back: format} \-> format \-> format`::
-  `enclose {front, back} fmt` : Concatenate (`cblock`) front, fmt, and back.
+  `enclose {front, back} fmt` : Concatenate (`cBlock`) front, fmt, and back.
 
 `[.kw]#val# parens: format \-> format`::
   `parens fmt = enclose {front=lparen, back=rparen} fmt` : Enclose fmt with left and right parentheses.
@@ -175,8 +181,14 @@ val styled : string -> format -> format
 `[.kw]#val# braces: format \-> format`::
   `braces fmt = enclose {front=lbrace, back=rbrace} fmt` : Enclose fmt with left and right curly braces. 
 
+`[.kw]#val# angleBrackets: format \-> format`::
+  `angleBrackets fmt = enclose {front=lbrace, back=rbrace} fmt` : Enclose fmt with left and right angle brackets. 
+
+`[.kw]#val# spaces : int \-> format`::
+  `spaces n = text <n spaces as string>`, where `n >= 0`.
+
 `[.kw]#val# label : string \-> format \-> format`::
-  `label str fmt = hblock (cblock (text str, colon), fmt)`
+  `label str fmt = hBlock [text str, fmt]`
 
 `[.kw]#val# appendNewLine : format \-> format`::
   Append a hard newline after the format.
@@ -184,38 +196,46 @@ val styled : string -> format -> format
 `[.kw]#val# sequence : alignment \-> format \-> format list \-> format`::
   `sequence a sep fmts`: Inserts `sep` between constituent formats in `fmts` and aligns according to `a`.
 
-`[.kw]#val# hsequence : format \-> format list \-> format`::
+`[.kw]#val# hSequence : format \-> format list \-> format`::
   `hsequence sep fmts`: Inserts `sep` between constituent formats in `fmts` with `H` alignment.
 
-`[.kw]#val# psequence : format \-> format list \-> format`::
+`[.kw]#val# pSequence : format \-> format list \-> format`::
   `psequence sep fmts`: Inserts `sep` between constituent formats in `fmts` with `P` alignment.
 
-`[.kw]#val# vsequence : alignment \-> format \-> format list \-> format`::
+`[.kw]#val# vSequence : alignment \-> format \-> format list \-> format`::
   `vsequence sep fmts`: Inserts `sep` between constituent formats in `fmts` with `V` alignment.
 
-`[.kw]#val# csequence : alignment \-> format \-> format list \-> format`::
+`[.kw]#val# cSequence : alignment \-> format \-> format list \-> format`::
   `csequence sep fmts`: Inserts `sep` between constituent formats in `fmts` with `C` alignment.
 
 `[.kw]#val# tuple : format list \-> format`::
-  Formats the members of the format list as a tuple (parenthesized, with elements
+  Formats the members of the format list as an SML tuple (parenthesized, with elements
   separated by commas) with default packed (P) alignment of the element formats.
 
 `[.kw]#val# list : format list \-> format`::
-  Formats the members of the format list as a list (bracketed, with elements
+  Formats the members of the format list as an SML list (bracketed, with elements
   separated by commas) with default packed (P) alignment of the element formats.
 
 `[.kw]#val# option : format option \-> format`::
   Formats a format option, producing `text "NONE"` or `"SOME(.)"`.
 
-`[.kw]#val# vHeaders : {header1: string, header2: string} \-> format list \-> format`::
-  Vertically align the formats with `header1` as header for the first format and
-  `header2` as header for subsequent formats. If `header1` and `header2` are of unequal sizes,
-  the shorter one is padded with spaces on the left to make its size equal to the longer.
+`[.kw]#val# vSequenceLabeled : string list \-> format list \-> format`::
+  Vertically align the formats with each format prepended (hBlock) with the corresponding label.
+  If there are more labels than formats, the extra labels are ignored;
+  if there are fewer labels than formats, the last label is repeated for the remaining formats.
+
+`[.kw]#val# justifyRight : string list \-> string list`::
+  Make all labels in the string list agree in length by padding with spaces on the left.
+  Typically used to pre-justify labels in conjunction with vSequenceLabeled. 
+
+`[.kw]#val# justifyLeft : string list \-> string list`::
+  Make all labels in the string list agree in length by padding with spaces on the right.
+  Typically used to pre-justify labels in conjunction with vSequenceLabeled.
 
 `[.kw]#val# indent : int \-> format \-> format`::
   `indent n fmt`: Indent `fmt` `n` additional spaces (relative to the parent block's blm)
   but only if immediately following a line break. Otherwise render `fmt` normally at current location,
-  with no line break or indentation.
+  with no line break or indentation; `n >= 0`.
 
 `[.kw]#val# tryFlat : format \-> format`::
   `tryFlat fmt` renders as `(flat fmt)` if that fits, and otherwise renders as `fmt`.
@@ -223,8 +243,8 @@ val styled : string -> format -> format
 `[.kw]#val# alt : format * format \-> format`::
   `alt (fmt1, fmt2)` renders as `fmt1` if `fmt1` fits, otherwise it renders as `fmt2`.
 
-`[.kw]#val# hvblock : format list \-> format`::
-  `hvblock fmts` renders as `(hblock fmts)` if that fits, and otherwise renders as `(vblock fmts)`.
+`[.kw]#val# hvBlock : format list \-> format`::
+  `hvblock fmts` renders as `(hBlock fmts)` if that fits, and otherwise renders as `(vBlock fmts)`.
 
 `[.kw]#val# styled : string \-> format \-> format`::
   `styled style format` : render `format` with _logical_ style `style`.
