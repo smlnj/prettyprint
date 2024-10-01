@@ -1,6 +1,11 @@
 (* prettyprint/src/render/printformat.sml *)
 
-(*** printing (i.e., rendering) formats ***)
+(* printing (i.e., rendering) formats to the TextIO.stdOut outstream (stdOut device), 
+ * with default line lenght of 80 characters.
+ *)
+
+(* imports: Device (functor parameter); Plain_Device, ANSITerm_Device. Formatting, RenderFn *)
+(* exports: functor PrintFormatFn, PrintPlain, PrintANSITerm *)
 
 (* Version 10.1
  * Imports: Formatting, Render, DeviceType
@@ -9,28 +14,32 @@
  * Version 10.2.
  * Functorized PrintFormat taking a DEVICE structure, yielding PrintFormatFn.
  * Use PrintFormatFn to define two "Print" structures: PrintPlain and PrintANSI.
+ * 
+ * Version 11.0
+ * 
  *)
 
-functor PrintFormatFn (D: DEVICE): PRINT_FORMAT =
+functor PrintFormatFn (Device: DEVICE): PRINT_FORMAT =
 struct
-
-structure Device = D
 
 structure Render = RenderFn (Device)
 
 val defaultLineWidth = 80
 
-(* renderStdout : Device.Mode.stylemap * int -> Formatting.format -> unit
+(* renderStdout : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit
  *   render the format with specified stylemap and width to stdout
  *)
-fun renderStdout (stylemap: Device.Mode.stylemap)  (width: int) (fmt: Formatting.format) =
-    Render.render (stylemap, Device.mkDevice TextIO.stdOut width) (Formatting.formatRep fmt)
+fun renderStdout (stylemap: Render.stylemap, tokenmap: Render.tokenmap, width: int)
+                 (fmt: Formatting.format) =
+    Render.render (stylemap, tokenmap, Device.mkDevice TextIO.stdOut width) (fmt: Formatting.format)
 
-(* printFormat : D.Mode.stylemap -> Formatting.format -> unit *)
-fun printFormat stylemap format = renderStdout stylemap defaultLineWidth format
+(* printFormat : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
+fun printFormat (stylemap, tokenmap, width) format =
+    renderStdout (stylemap, tokenmap, width) format
 
-(* printFormatNL : D.Mode.stylemap -> Formatting.format -> unit *)
-fun printFormatNL stylemap format = printFormat stylemap (Formatting.appendNewLine format)
+(* printFormatNL : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
+fun printFormatNL (stylemap, tokenmap, width) format =
+    printFormat (stylemap, tokenmap,  width) (Formatting.appendNewLine format)
 
 end (* functor PrintFormatFn *)
 
@@ -39,6 +48,5 @@ end (* functor PrintFormatFn *)
 
 structure PrintPlain = PrintFormatFn (Plain_Device)
 
+structure PrintANSITerm = PrintFormatFn (ANSITerm_Device)
 
-structure PrintANSI = PrintFormatFn (ANSITerm_Device)
-				    

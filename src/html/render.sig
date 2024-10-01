@@ -18,6 +18,7 @@ signature HTML_RENDER =
 sig
 
   val render : Formatting.format * int -> HTML.text
-  (* render (fmt, lw): render fmt directly to an HTML 3 representation of type HTML.text, with line width lw *)
+  (* render (fmt, lw): render fmt directly to an HTML 3 representation of type HTML.text,
+   * with line width lw *)
 
 end (* signature RENDER *)
