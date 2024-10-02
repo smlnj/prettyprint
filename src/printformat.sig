@@ -1,4 +1,4 @@
-(* prettyprint/src/render/printformat.sig *)
+(* prettyprint/src/printformat.sig *)
 
 (* Version 10.2
  * Imports : Formatting, Device

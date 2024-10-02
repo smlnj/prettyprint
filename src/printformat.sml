@@ -1,4 +1,4 @@
-(* prettyprint/src/render/printformat.sml *)
+(* prettyprint/src/printformat.sml *)
 
 (* printing (i.e., rendering) formats to the TextIO.stdOut outstream (stdOut device), 
  * with default line lenght of 80 characters.

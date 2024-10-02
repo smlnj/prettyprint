@@ -1,5 +1,5 @@
 (* prettyprint/src/prettyprint.cm *)
-(* CM Description File for the PrettyPrinter Library *)
+(* The CM Description File for the PrettyPrinter Library *)
 
 Library
 
@@ -9,13 +9,27 @@ Library
   structure PrintANSI
 
 is
-(* member files - none *)
+(* member files *)
 
+(* "logical" styles and tokens *)
+style.sml            (* -> Style *)
+token.sml            (* -> Token *)
+
+(* formatting *)
+format.sml           (* -> Format: the concrete format type family *)
+measure.sig          (* -> MEASURE *)
+measure.sml          (* -> Measure *)
+formatting.sig       (* -> FORMATTING: format construction functions *)
+formatting.sml       (* -> Formatting: exports format ( == Format.format) type *)
+
+(* rendering formats *)
+render.sig           (* -> RENDER *)
+renderfn.sml         (* -> RenderFn *)
+printformat.sig      (* -> PRINT_FORMAT *)
+printformat.sml      (* -> PrintFormatFn, PrintPlain, PrintANSI *)
 
 (* imports *)
 $smlnj/basis/basis.cm
 
-base/base.cm              (* -> Token *)
-formatting/formatting.cm  (* -> Formatting *)
-render/render.cm          (* -> PrintPlain, PrintANSI *)
+../device/device.cm  (* -> Device, DEVICE, Plain_Device, ANSITerm_Device *)
 
