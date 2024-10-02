@@ -315,7 +315,10 @@ combined can also vary between terminal emulations.
 
 **Version 11.0 [2024.09]**
 
-Made some of JHR suggested changes.
+- Made some of the changes suggested by JHR.
+
+- Flattened the src directory hierarchy so that all the prettyprinter
+  source files are in the top-level directories src, device, and html.
 
 - Changed:
 
@@ -337,7 +340,7 @@ Made some of JHR suggested changes.
       blocks, where otherwise one would have to use a basic block with
 	  Space breaks.
 	  
-	- justifyRight, justifyLeft, auxiliary functions meant to be used
+	- justifyRight, justifyLeft auxiliary functions to be used
       in conjunction with the new vSequenceLabeled function to justify
       lists of labels by padding with spaces on the left, respectively right.
 
@@ -371,7 +374,8 @@ device model.
 1. This device model is simpler and has fewer layers of complexity. In
    particular, it has a functional interface and does not expose
    functions that manipulate the _state_ of a device such as the pushStyle
-   and popStyle functions.
+   and popStyle functions. The withStyle function temporarily (and implicitly)
+   changes the state of a device while executing a rendering thunk.
 
 2. This device model defines styles in terms of sets of text highlighting attributes,
    where the highlighting attributes are determined by the nature of the underlying

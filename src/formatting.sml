@@ -310,12 +310,12 @@ fun option (formatOp: format option) =
  * using the justifyLeft and justifyRight functions defined below, which also guarantee
  * that the labels all have the same length after justification.
  * ASSERT: if not (null formats) then not (null labels)
- *   if the assertion fails, raises Fail.
+ *   if the assertion fails, raises Fail
  *)
 
 fun vSequenceLabeled (labels: string list) (formats: format list) : format =
     let fun combine (nil, nil, acum) = rev acum
-	  | combine (nil, _, _) = raise Fail "vSequence: labels exhausted before formats"
+	  | combine (nil, _, _) = raise Fail "vSequenceLabeled: no labels provided"
 	  | combine (labels as (label::nil), fmt::formats, acum) = 
 	    combine (labels, formats, hBlock [text label, fmt] :: acum)
 	  | combine (label::labels, fmt::formats, acum) = 
@@ -325,9 +325,7 @@ fun vSequenceLabeled (labels: string list) (formats: format list) : format =
 
 (* justifyRight : string list -> string list
  * pad the shorter strings in labels with spaces on the left to make all labels the same size.
- * ASSERT: let labels' = justifyRight labels
-           => sameSizes labels' and
-	      All x in labels'. size x = max (map size labels). *)
+ * ASSERT: All x in justifyRight labels. size x = max (map size labels). *)
 fun justifyRight (labels: string list) =
     let val maxSize = foldl Int.max 0 (map size labels)
      in map (fn s => StringCvt.padLeft #" " maxSize s) labels
@@ -335,9 +333,7 @@ fun justifyRight (labels: string list) =
 
 (* justifyLeft : string list -> string list
  * pad the shorter strings in labels with spaces on the right to make all labels the same size.
- * ASSERT: let labels' = justifyLeft labels
-           => sameSizes labels' and
-              All x in labels'. size x = max (map size labels). *)
+ * ASSERT: All x in justifyLeft labels. size x = max (map size labels). *)
 fun justifyLeft (labels: string list) =
     let val maxSize = foldl Int.max 0 (map size labels)
      in map (fn s => StringCvt.padRight #" " maxSize s) labels
