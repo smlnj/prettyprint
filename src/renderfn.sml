@@ -109,7 +109,7 @@ fun render (stylemap: stylemap, tokenmap: tokenmap, device: D.device) (format: F
 	val token = D.token device		      
 	fun flush () = D.flush device
 	fun renderStyled  (style: Style.style, thunk: (unit -> renderState)) : renderState =
-	    D.withStyle device (stylemap style, thunk)
+	    D.withStyle (device, stylemap style, thunk)
 
 	(* lineBreak : int -> unit  -- output a newline followed by an indentation of n spaces *)
 	fun lineBreak n = (newline (); indent n)

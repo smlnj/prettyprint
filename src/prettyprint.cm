@@ -8,7 +8,7 @@ Library
   structure Token
   structure Formatting
   structure PrintPlain
-  structure PrintANSI
+  structure PrintANSITerm
 
 is
 (* member files *)

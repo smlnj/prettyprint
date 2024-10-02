@@ -58,7 +58,7 @@ sig
     *     PPDevice/src/ansi-term-dev.sml.
     *)
 
-  exception DeviceError
+  exception DeviceError of string
 
   val mkDevice : TextIO.outstream -> int -> device
   (* The int is the linewidth of the device, assumed fixed and positive.

@@ -16,8 +16,8 @@ type device =
   {outstream : TextIO.outstream,  (* outstream for an ANSI terminal (emulation) *)
    width : int}  (* INVARIANT width > 0 *)
 
-type style = unit  (* no device styles *)
-type token = unit  (* no device tokens *)
+type style = unit  (* no device styles, not relevant *)
+type token = unit  (* no device tokens, not relevant *)
 
 (* mkDevice : TextIO.outstream -> int -> DT.device *)
 fun mkDevice (outstream : TextIO.outstream) (lineWidth: int) : device =
@@ -30,7 +30,7 @@ fun resetDevice ({outstream, ...}: device) =
 (* width : device -> int -- always nonnegative *)
 fun width ({width, ...}: device) = width
 
-exception DeviceError (* redundant in this case because it is never raised *)
+exception DeviceError of string (* redundant, because it is never raised *)
 
 (* space : device -> int -> unit *)
 (* output some number of spaces to the device *)
@@ -57,9 +57,9 @@ fun token ({outstream,...}: device) (t: token) = ()
 (* if the device is buffered, then flush any buffered output *)
 fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 
-(* withStyle : ['r] device -> M.mode * (unit -> 'r) -> 'r *)
-(* When called withing the renderer, 'r instantiates to DT.renderState *)
-fun 'r withStyle (device: device) (mode: Mode.mode, thunk : unit -> 'r) : 'r =
+(* withStyle : [All 'r] device * style * (unit -> 'r) -> 'r *)
+(* When called withing the renderer, 'r instantiates to renderState *)
+fun 'r withStyle (device: device, style: style, thunk : unit -> 'r) : 'r =
      thunk ()
 
 end (* structure Plain_Device : DEVICE *)

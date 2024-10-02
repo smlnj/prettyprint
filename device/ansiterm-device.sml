@@ -83,7 +83,7 @@ type termState =
       underlined : bool, (* default false *)
       blinking : bool}   (* default false *)
 
-(* NOTES: 
+(* NOTE: 
  * (1) The color denoted by AT.Default is dependent on whether we are
  * referring to foreground or background color. I.e. the interpretaion of AT.default
  * is context dependent. The default foreground and background colors _will be_ different
@@ -127,8 +127,8 @@ type device =
    lineWidth : int}  (* INVARIANT lineWidth > 0 *)
 	       
 fun clearOutstream (outstream : TextIO.outstream) =
-    (TextIO.flushOut outstream;           (* clearing any buffered output *)
-     AT.setStyle (outstream, [AT.RESET])  (* setting terminal state to defaultState *)
+    (TextIO.flushOut outstream;            (* clearing any buffered output *)
+     AT.setStyle (outstream, [AT.RESET]))  (* setting terminal state to defaultState *)
 		  
 (* mkDevice : TextIO.outstream -> int -> device *)
 fun mkDevice (outstream : TextIO.outstream) (lineWidth : int) =
@@ -160,31 +160,31 @@ fun delta (style : style, {fg,bg,bold,dim,underlined,blinking} : termState) : co
     let fun foo (nil, commands, fg, bg, bold, dim, underlined, blinking) =
 	    (rev commands,
 	     {fg = fg, bg = bg, bold = bold, dim = dim, underlined = underlined, blinking = blinking})
-          | foo (TA.ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> fg
 	     then foo (rest, AT.FG c :: commands, c, bg, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (TA.BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> bg
 	     then foo (rest, AT.BG c :: commands, fg, c, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (TA.BoldFace :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (BoldFace :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not bold
 	     then foo (rest, AT.BF :: commands, fg, bg, true, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (TA.Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not dim
 	     then foo (rest, AT.DIM :: commands, fg, bg, bold, true, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (TA.Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not underlined
 	     then foo (rest, AT.UL :: commands, fg, bg, bold, dim, true, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (TA.Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not blinking
 	     then foo (rest, AT.BLINK :: commands, fg, bg, bold, dim, underlined, true)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-     in foo (mode, nil, fg, bg, bold, dim, underlined, blinking)
+     in foo (style, nil, fg, bg, bold, dim, underlined, blinking)
     end
 	
 (* pushState : device -> style -> unit *)
@@ -246,10 +246,10 @@ fun token ({outstream,...}: device) (t: token) = TextIO.output (outstream, t)
 (* if the device is buffered, then flush any buffered output *)
 fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 
-(* withStyle : device -> M.mode * (unit -> 'r) -> 'r *)
-(* formerly named renderStyled *)
-(* When called within the renderer, 'r instantiates to DT.renderState *)
-fun 'r withStyle (device: device) (style: style, renderThunk : unit -> 'r) : 'r =
+(* withStyle : device * style * (unit -> 'r) -> 'r *)
+(* formerly named "renderStyled" *)
+(* When called within the renderer, 'r instantiates to local renderState type *)
+fun 'r withStyle (device: device, style: style, renderThunk : unit -> 'r) : 'r =
     (pushState device style;
      renderThunk ()
        before restoreState device)

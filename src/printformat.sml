@@ -16,7 +16,7 @@
  * Use PrintFormatFn to define two "Print" structures: PrintPlain and PrintANSI.
  * 
  * Version 11.0
- * 
+ *   See CHANGELOG.md.
  *)
 
 functor PrintFormatFn (Device: DEVICE): PRINT_FORMAT =
@@ -27,8 +27,7 @@ structure Render = RenderFn (Device)
 val defaultLineWidth = 80
 
 (* renderStdout : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit
- *   render the format with specified stylemap and width to stdout
- *)
+ *   render the format with specified stylemap and width to stdout *)
 fun renderStdout (stylemap: Render.stylemap, tokenmap: Render.tokenmap, width: int)
                  (fmt: Formatting.format) =
     Render.render (stylemap, tokenmap, Device.mkDevice TextIO.stdOut width) (fmt: Formatting.format)

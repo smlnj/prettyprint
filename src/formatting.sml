@@ -75,7 +75,7 @@
  *   Thus eliminating the need for the trivial Style structure.
  *
  * Version 11.0 [2024.09]
- *   See comment for Version 11 in formatting.sig or ../../CHANGELOG.md
+ *   See comment for Version 11 in formatting.sig or ../../CHANGELOG.md entry for Version 11.
  *)
 
 (* Defines:
@@ -267,29 +267,29 @@ fun sequence (alignment: F.alignment) (sep: format) (formats: format list) =
 	  | addBreaks fmts =  (* fmts non-null *)
 	      let fun interpolate [fmt] = [F.FMT fmt]
 		    | interpolate (fmt :: rest) =  (* not (null rest) *)
-			F.FMT fmt :: (separate (inter rest))
+			F.FMT fmt :: (separate (interpolate rest))
 		    | interpolate nil = nil (* won't happen *)
 	       in interpolate fmts
 	      end
       in block (addBreaks formats)
      end
 
-(* xsequence : [sep:]format -> format list -> format, x = h, v, p, c *)
-val hsequence = sequence F.H
-val psequence = sequence F.P
-val vsequence = sequence F.V
-val csequence = sequence F.C
+(* xSequence : [sep:]format -> format list -> format, x = h, v, p, c *)
+val hSequence = sequence F.H
+val pSequence = sequence F.P
+val vSequence = sequence F.V
+val cSequence = sequence F.C
 
 (* tuple : format list -> format
  *  parenthesized, comma-separated, packed alignment sequence
  *  not really restricted to actual "tuples", just "tuple-style" formatting. Constituent formats can represent
  *  values of heterogeneous types. *)
-fun tuple (formats: format list) = parens (psequence comma formats)
+fun tuple (formats: format list) = parens (pSequence comma formats)
 
 (* list : format list -> format
  *  bracketed, comma-separated, packed alignment
  *  typically used for lists, but the constituent formats can represent values of heterogeneous types. *)
-fun list (formats: format list) = brackets (psequence comma formats)
+fun list (formats: format list) = brackets (pSequence comma formats)
 
 fun option (formatOp: format option) =
     case formatOp
@@ -315,11 +315,11 @@ fun option (formatOp: format option) =
 
 fun vSequenceLabeled (labels: string list) (formats: format list) : format =
     let fun combine (nil, nil, acum) = rev acum
-	  | combine (nil, _, _) = raise Fail "vSequence: no labels"
+	  | combine (nil, _, _) = raise Fail "vSequence: labels exhausted before formats"
 	  | combine (labels as (label::nil), fmt::formats, acum) = 
 	    combine (labels, formats, hBlock [text label, fmt] :: acum)
 	  | combine (label::labels, fmt::formats, acum) = 
-	    combine (labels, fmormats, hBlock [text label, fmt] :: acum)
+	    combine (labels, formats, hBlock [text label, fmt] :: acum)
      in vBlock (combine (labels, formats, nil))
     end
 
