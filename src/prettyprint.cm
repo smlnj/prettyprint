@@ -4,6 +4,8 @@
 Library
 
   (* exports *)
+  structure Style
+  structure Token
   structure Formatting
   structure PrintPlain
   structure PrintANSI
