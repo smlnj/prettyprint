@@ -19,26 +19,25 @@
  *   See CHANGELOG.md.
  *)
 
-functor PrintFormatFn (Device: DEVICE): PRINT_FORMAT =
+functor PrintFormatFn (D: DEVICE): PRINT_FORMAT =
 struct
 
-structure Render = RenderFn (Device)
+  structure Device = D
+  structure Render = RenderFn (Device)
 
-val defaultLineWidth = 80
+  (* renderStdout : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit
+   *   render the format with specified stylemap and width to stdout *)
+  fun renderStdout (stylemap: Render.stylemap, tokenmap: Render.tokenmap, width: int)
+		   (fmt: Formatting.format) =
+      Render.render (stylemap, tokenmap, Device.mkDevice TextIO.stdOut width) (fmt: Formatting.format)
 
-(* renderStdout : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit
- *   render the format with specified stylemap and width to stdout *)
-fun renderStdout (stylemap: Render.stylemap, tokenmap: Render.tokenmap, width: int)
-                 (fmt: Formatting.format) =
-    Render.render (stylemap, tokenmap, Device.mkDevice TextIO.stdOut width) (fmt: Formatting.format)
+  (* printFormat : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
+  fun printFormat (stylemap, tokenmap, width) format =
+      renderStdout (stylemap, tokenmap, width) format
 
-(* printFormat : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
-fun printFormat (stylemap, tokenmap, width) format =
-    renderStdout (stylemap, tokenmap, width) format
-
-(* printFormatNL : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
-fun printFormatNL (stylemap, tokenmap, width) format =
-    printFormat (stylemap, tokenmap,  width) (Formatting.appendNewLine format)
+  (* printFormatNL : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit *)
+  fun printFormatNL (stylemap, tokenmap, width) format =
+      printFormat (stylemap, tokenmap,  width) (Formatting.appendNewLine format)
 
 end (* functor PrintFormatFn *)
 

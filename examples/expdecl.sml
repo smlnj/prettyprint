@@ -22,7 +22,8 @@ How would you format expressions so that you could get the following renders?
 *)
 
 local
-  structure PP = Formatting
+  structure F = Formatting
+  structure P = PrintPlain
 in
 
 datatype exp
@@ -34,28 +35,28 @@ datatype exp
 and dcl
   = Val of string * exp
 
-fun formatExp (Var s) = PP.text s
-  | formatExp (Num n) = PP.integer n
+fun formatExp (Var s) = F.text s
+  | formatExp (Num n) = F.integer n
   | formatExp (Plus (exp1, exp2)) =
-      PP.pblock
-	 [PP.hblock [formatExp exp1, text "+"],
-	  PP.indent 2 (formatExp exp2)]
+      F.pBlock
+	 [F.hBlock [formatExp exp1, text "+"],
+	  F.indent 2 (formatExp exp2)]
   | formatExp (Let (dcls, exps)) =
-      PP.tryFlat
-         (PP.vblock
-	     [PP.hblock [text "let", fmtDcls dcls],
-              PP.indent 1 (PP.hblock [PP.text "in", formatExps exps]),
-              PP.text "end"])
+      F.tryFlat
+         (F.vSequenceLabeled (justifyRight ["let", "in", "end"])
+	     [fmtDcls dcls,
+              formatExps exps,
+              F.empty])
 
 and formatExps (exps: exp list) =
-    PP.tryFlat (PP.vsequence PP.semicolon (map formatExp exps))
+    F.tryFlat (F.vSequence F.semicolon (map formatExp exps))
 
 and fmtDcl (Val (name, exp)) =
-    PP.pblock
-       [PP.hblock [text "val", text name, text "="],
-	indent 4 (formatExp exp)]
+    F.pBlock
+       [F.hBlock [F.text "val", F.text name, F.equal],
+	F.indent 4 (formatExp exp)]
 
-and fmtDcls dcls = vblock (map fmtDcl dcls)
+and fmtDcls dcls = F.vBlock (map fmtDcl dcls)
 
 end; (* local *)
 
@@ -63,6 +64,11 @@ end; (* local *)
 
 val exp1 = Let ([Val ("x", Num 1), Val ("y", Num 2)], [Plus (Var "x", Num 3), Var "y"]);
 
-fun test fmt n = printFormatLW n fmt;
+(* nullStylemap : P.Render.stylemap *)
+val nullStylemap : P.Render.stylemap = (fn (s: S.style) = ())
+(* nullTokenmap : P.Render.tokenmap *)
+val nullTokenmap : P.Render.tokenmap = (fn (t: T.token) = ())
+
+fun test fmt w = P.printFormatNL (nullStylemap, nullTokenmap, w) fmt
 
 val test1 = test (formatExp exp1);

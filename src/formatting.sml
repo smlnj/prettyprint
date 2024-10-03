@@ -314,13 +314,13 @@ fun option (formatOp: format option) =
  *)
 
 fun vSequenceLabeled (labels: string list) (formats: format list) : format =
-    let fun combine (nil, nil, acum) = rev acum
-	  | combine (nil, _, _) = raise Fail "vSequenceLabeled: no labels provided"
-	  | combine (labels as (label::nil), fmt::formats, acum) = 
-	    combine (labels, formats, hBlock [text label, fmt] :: acum)
-	  | combine (label::labels, fmt::formats, acum) = 
-	    combine (labels, formats, hBlock [text label, fmt] :: acum)
-     in vBlock (combine (labels, formats, nil))
+    let fun prepend (nil, nil, acum) = rev acum
+	  | prepend (nil, _, _) = raise Fail "vSequenceLabeled: no labels provided"
+	  | prepend (labels as (l::nil), fmt::formats, acum) = 
+	      prepend (labels, formats, label l fmt :: acum)
+	  | prepend (l::labels, fmt::formats, acum) = 
+	      prepend (labels, formats, label l fmt :: acum)
+     in vBlock (prepend (labels, formats, nil))
     end
 
 (* justifyRight : string list -> string list

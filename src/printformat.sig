@@ -10,6 +10,7 @@
 signature PRINT_FORMAT =
 sig
     
+  structure Device: DEVICE  (* included so we can use it to write stylemaps and tokenmaps *)
   structure Render : RENDER
 
   val renderStdout : Render.stylemap * Render.tokenmap * int -> Formatting.format -> unit

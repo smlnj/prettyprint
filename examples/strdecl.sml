@@ -1,9 +1,13 @@
 (* smlnj-lib/PrettyPrint/examples/strdecl.sml, for PrettyPrint, Version 8.3 *)
 
-local
+(* [DBM, 2024.10.3]: updated for Version 11.0 *)
 
-  open PrettyPrint
+local (* imports *)
 
+  structure S = Style
+  structure T = Token
+  structure F = Formatting
+  structure P = PrintPlain
 in
 
 datatype str
@@ -16,23 +20,28 @@ and decl
   | STRd of string * str
 
 (* formatStr : (decl -> format) -> str -> format *)
-fun formatStr _ (SVAR name) = text name
+fun formatStr _ (SVAR name) = F.text name
   | formatStr fdecl (STRUCT decls) = 
-      vblock [text "struct", indent 2 (vblock (map fdecl decls)), text "end"]
+      F.vBlock [F.text "struct", F.indent 2 (V.vBlock (map fdecl decls)), F.text "end"]
 
 (* formatDecl1 : decl -> format *)
 and formatDecl1 decl =
     (case decl
-       of VALd (name, def) => pcat (hblock [text "val", text name, text "="], indent 2 (text def))
-	| TYPd (name, def) => pcat (hblock [text "type", text name, text "="], indent 2 (text def))
-	| STRd (name, str) => pcat (hblock [text "structure", text name, text "="],
-				    indent 2 (tryFlat (formatStr formatDecl1 str))))
+       of VALd (name, def) =>
+	    F.pBlock [F.hBlock [F.text "val", F.text name, F.equal],
+		      F.indent 2 (F.text def)]
+	| TYPd (name, def) =>
+	    F.pBlock [F.hBlock [F.text "type", F.text name, F.equal],
+		      F.indent 2 (F.text def)]
+	| STRd (name, str) =>
+	    F.pBlock [F.hBlock [F.text "structure", F.text name, F.equal],
+		      F.indent 2 (F.tryFlat (formatStr formatDecl1 str))])
 
 fun formatDecl2 (STRd (name, STRUCT decls)) =
-      vblock
-        [hblock [text "structure", text name, text "=", text "struct"],
-	 indent 2 (vblock (map formatDecl2 decls)),
-	 text "end"]
+      F.vBlock
+        [F.hBlock [F.text "structure", F.text name, F.equal, F.text "struct"],
+	 F.indent 2 (F.vBlock (map formatDecl2 decls)),
+	 F.text "end"]
   | formatDecl2 decl = formatDecl1 decl
 
 (* examples *)
@@ -44,7 +53,12 @@ val str2 = STRUCT [TYPd ("s", "bool"), VALd ("y", "true"), STRd ("S", str1)]
 val strd1 = STRd ("A", str1)
 val strd2 = STRd ("B", str2)
 
-fun test fmt n = printFormatLW n fmt
+(* nullStylemap : P.Render.stylemap *)
+val nullStylemap : P.Render.stylemap = (fn (s: S.style) = ())
+(* nullTokenmap : P.Render.tokenmap *)
+val nullTokenmap : P.Render.tokenmap = (fn (t: T.token) = ())
+
+fun test fmt w = P.printFormatNL (nullStylemap, nullTokenmap, w) fmt
 
 val t11 = test (formatDecl1 strd1)
 val t12 = test (formatDecl1 strd2)
