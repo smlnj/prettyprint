@@ -1,4 +1,4 @@
-(* smlnj-lib/PrettyPrint/examples/expdecl.sml, for PrettyPrint, Version 8.3 *)
+(* prettyprint/examples/expdecl.sml *)
 
 (* (JHR, 2022-0606)
 
@@ -20,6 +20,7 @@ How would you format expressions so that you could get the following renders?
 
 	let val x = ... in x end
 *)
+(* [DBM, 2024.10.3]: updated for Version 11.0 *)
 
 local
   structure F = Formatting
@@ -35,6 +36,7 @@ datatype exp
 and dcl
   = Val of string * exp
 
+(* the main formatExp function, using the new vSequenceLabeled for let-in-end expressions *)
 fun formatExp (Var s) = F.text s
   | formatExp (Num n) = F.integer n
   | formatExp (Plus (exp1, exp2)) =

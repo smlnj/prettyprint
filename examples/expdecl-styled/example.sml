@@ -7,6 +7,7 @@
  * (Version 10.1 of PrettyPrint *)
  *)
 
+(* AST: a small abstract syntax *)
 structure AST =
 struct
 
@@ -35,58 +36,61 @@ struct (* FormatAST *)
 local
 
   structure S = Style
-  structure F = Format
-  structure FG = Formatting
-
+  structure F = Formatting
+  structure AT = ANSITermDevice
 in 
 
   (* mapping some "local" styles into ANSI terminal style strings *)
-  val kwStyle : S.style list = ["BF", "FG.Blue"]
-  val varStyle : S.style list = ["UL"]
-  val numStyle : S.style list = ["FG.Green"]
-  val opStyle : S.style list = ["BF"]
+  val kwDevStyle : AT.style = 
+  val varStyle : AT.style = 
+  val numStyle : AT.style = [AT.Green]
+  val opStyle : AT.style = [AT.BoldFace]
 
-  (* wrapStyles : S.style list * FG.format -> FG.format *)
-  fun wrapStyles (nil, fmt) = fmt
-    | wrapStyles (style::styles, fmt) =
-        FG.style (style, wrapStyles (styles, fmt))
+  (* stylemap : Style.style -> AT.style *)
+  fun stylemap "keyword" = [AT.BoldFace, AT.Blue] (* keyword device Style *)
+    | stylemap "variable" = [AT.UnderLine] (* variable device Style *)
+    | stylemap "number" = [AT.Green] (* number device Style *)
+    | stylemap "operator" = [AT.BoldFace] (* operator device Style *)
 
   (* kw : string -> F.format *)
-  fun kw s = wrapStyles (kwStyle, FG.text s)
+  fun kw s = F.style ("keyword", F.text s)
+  (* var : string -> F.format *)
+  fun var x = F.style ("variable", F.text x)
+  (* var : int -> F.format *)
+  fun num n = F.style ("number", F.integer n)
+  (* oper : string -> F.format *)
+  fun oper s = F.style ("operator", F.text s)
 
-  val letKW = kw "let"
   val valKW = kw "val"
+  val letKW = kw "let"
   val inKW = kw "in"
   val endKW = kw "end"
-
-  fun var x = wrapStyles (varStyle, FG.text x)
-  fun num n = wrapStyles (numStyle, FG.integer n)
-  val plusOP = wrapStyles (opStyle, FG.text "+")
+  val plusOP = oper "+"
 
   fun formatExp (AST.Var s) = var s
     | formatExp (AST.Num n) = num n
     | formatExp (AST.Plus(exp1, exp2)) =
-	PP.pblock
-	  [PP.hblock [formatExp exp1, plusOP],
-	   PP.indent 2 (formatExp exp2)]
+	F.pBlock
+	  [F.hBlock [formatExp exp1, plusOP],
+	   F.indent 2 (formatExp exp2)]
     | formatExp (AST.Let (dcls, exps)) =
 	let val body = formatExps exps
-	 in FG.tryFlat
-	      (FG.vblock
-		 [FG.hblock[letKW, fmtDcls dcls],
-		  FG.alt (FG.hblock [inKW, body, endKW],
-			  FG.vblock [inKW, FG.indent 2 body, endKW])])
+	 in F.tryFlat
+	      (F.vBlock
+		 [F.hBlock[letKW, fmtDcls dcls],
+		  F.alt (F.hBlock [inKW, body, endKW],
+			  F.vBlock [inKW, F.indent 2 body, endKW])])
 	end
 
   and formatExps (exps: AST.exp list) =
-	FG.tryFlat (FG.vsequence FG.semicolon (map formatExp exps))
+	F.tryFlat (F.vSequence F.semicolon (map formatExp exps))
 
   and fmtDcl (AST.Val (name, exp)) =
-      FG.block
-	[FG.hblock [valKW, var name, FG.equal],
-	 FG.indent 4 (formatExp exp)]
+      F.Block
+	[F.hBlock [valKW, var name, F.equal],
+	 F.indent 4 (formatExp exp)]
 
-  and fmtDcls dcls = FG.vblock (List.map fmtDcl dcls)
+  and fmtDcls dcls = F.vBlock (List.map fmtDcl dcls)
 
   fun render (lw: int) (e: exp) = PrintFormat.renderStd lw (formatExp e)
 
