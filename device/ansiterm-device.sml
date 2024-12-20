@@ -1,16 +1,23 @@
 (* ansiterm-device.sml *)
 
-(* This structure may be redundant. It may be possible to replace it with the equivalent(?)
+(* This structure might be redundant. It might be possible to replace it with the
  * ANSITerm structure from the PPDevice library assuming that structure matches our local
- * DEVICE signature. *)
+ * DEVICE signature. But note that the PPDevice version of the ANSI terminal device has a 
+ * quite different notion of "style" based on attribute-setting _commands_ rather than on the
+ * attributes themselves. So any styles needed for the PPDevice version would be defined
+ * in terms of ANSITerm.style values, which are attribute-setting commands. *)
 
-structure ANSITerm_Device : DEVICE =
+(* note that the structure ANSITERM_Device is not constrained here by the DEVICE signature.
+ * This is because we need to have access to the attribute type in order to define ANSIterm
+ * "styles" when defining stylemap functions. *)
+
+structure ANSITermDevice =  (* no signature constraint -- we need access to attribute *)
 struct
 
 local (* imported structures *)
 
   structure AT = ANSITerm
-    (* Basis Library structure proving commands for setting state of ANSI terminals,
+    (* Basis Library structure providing commands for setting state of ANSI terminals,
      * smlnj-lib/Util/ansi-term.sml *)
 
 in
@@ -26,7 +33,7 @@ in
  * Blinkiing. We think of the last four of these as text highlighting attributes, and
  * they are treated as additive (or cumulative) with respect to nesting of modes.
  * - AT.REV is an attribute-setting command affecting FG and BG, not an attribute.
- * - AT.INVIS is deemed not to be a useful attribute and hence is not relevant to
+ * - AT.INVIS is deemed not to be a useful attribute with respect to
  *   prettyprinting. If a formatter wants to suppress printing of some part of the data
  *   being prettyprinted, this can be done by normal means (including it conditionally in
  *   the format), rather than by imposing an "invisible" text attribute.
