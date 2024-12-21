@@ -9,15 +9,18 @@
  * plain text device structure from the PPDevice library assuming that structure matches our local
  * DEVICE signature. *)
 
-structure Plain_Device : DEVICE =
+structure PlainDevice : DEVICE =
 struct
 
+structure Style =
+struct
+  type style = unit  (* no device styles, not relevant *)
+  type token = unit  (* no device tokens, not relevant *)
+end (* structure Style *)
+  
 type device =
   {outstream : TextIO.outstream,  (* outstream for an ANSI terminal (emulation) *)
    width : int}  (* INVARIANT width > 0 *)
-
-type style = unit  (* no device styles, not relevant *)
-type token = unit  (* no device tokens, not relevant *)
 
 (* mkDevice : TextIO.outstream -> int -> DT.device *)
 fun mkDevice (outstream : TextIO.outstream) (lineWidth: int) : device =

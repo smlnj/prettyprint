@@ -1,16 +1,17 @@
 (* ansiterm-device.sml *)
 
-(* This structure is similar to the ANSITerm structure from the PPDevice library.
- * But note that the PPDevice version of the ANSI terminal device has a quite different
- * notion of "style" based on attribute-setting _commands_ rather than on the
- * attributes themselves, that is, any styles needed for the PPDevice version are
- * defined in terms of ANSITerm.style values, which are attribute-setting commands. *)
+(* This structure might be redundant. It might be possible to replace it with the
+ * ANSITerm structure from the PPDevice library assuming that structure matches our local
+ * DEVICE signature. But note that the PPDevice version of the ANSI terminal device has a 
+ * quite different notion of "style" based on attribute-setting _commands_ rather than on the
+ * attributes themselves. So any styles needed for the PPDevice version would be defined
+ * in terms of ANSITerm.style values, which are attribute-setting commands. *)
 
 (* note that the structure ANSITERM_Device is not constrained here by the DEVICE signature.
  * This is because we need to have access to the attribute type in order to define ANSIterm
  * "styles" when defining stylemap functions. *)
 
-structure ANSITermDevice : DEVICIE where structure Style = ANSITermStyle
+structure ANSITermDevice =  (* no signature constraint -- we need access to attribute *)
 struct
 
 local (* imported structures *)
@@ -21,9 +22,56 @@ local (* imported structures *)
 
 in
 
-structure Style = ANSITermStyle  (* device/ansiterm-style.sml *)
+(* NOTE: The values of AT.style denote attribute _transition commands_ rather than
+   attributes themselves. *)
 
-(********* internal types of the ANSI terminal device model *********)
+(* type attribute
+ * Attributes are the terminal text attributes per se, not attribute transition commands.
+ * Hence analogues of the ANSITerm.style values RESET, NORMAL, UL_OFF, REV_OFF, or REV
+ * are not included in the attribute type. We are thus restricting ourselves to the
+ * attributes ForeGround (color), BackGround (color), BoldFace, Dim, Underlined, and
+ * Blinkiing. We think of the last four of these as text highlighting attributes, and
+ * they are treated as additive (or cumulative) with respect to nesting of modes.
+ * - AT.REV is an attribute-setting command affecting FG and BG, not an attribute.
+ * - AT.INVIS is deemed not to be a useful attribute with respect to
+ *   prettyprinting. If a formatter wants to suppress printing of some part of the data
+ *   being prettyprinted, this can be done by normal means (including it conditionally in
+ *   the format), rather than by imposing an "invisible" text attribute.
+ * - Use of the BLINK attribute is discouraged, since this is normally annoying, but
+ *   there may be extreme circumstances (e.g. severe error warnings) where it might be
+ *   appropriate.
+ * QUESTION: Do we also need to deal with the _background_ color of text? Note that we
+ *   are trying to avoid dealing with "modifications" of a display mode, like the effect
+ *   of reversing forground and background colors, which is a modification with respect
+ *   to the current display case. Controling the background color of text independently
+ *   of the foreground color does not seem to be directly supported by the ANSI terminal
+ *   model. We assert that our model of ANSI terminal "styles" does not need to reflect
+ *   all the possible capabilities of the ANSI terminal with respect to displaying text.
+ * NOTE: When we need to restore previous states, we need to know the text _attributes_.
+ *   Knowing a that a state transform like REV was applied is not enough when we are 
+ *   modeling the terminal text display based on _states_ rather than state transforms.
+ *   Trying to model the state via sequences of transforms that have been applied is more
+ *   difficult (how to we reverse RED as a transform?).
+ *)
+
+datatype attribute
+  = ForeGround of AT.color  (* forground - color of text characters *)
+  | BackGround of AT.color  (* background - color of text background *)
+  | BoldFace                (* bold font (if terminal typeface provides one) *)
+  | Dim                     (* reduced density *)
+  | Underlined
+  | Blinking
+
+(* A _device_ style is a list of ANSITerm attributes. (same as former ANSITerm_Mode.mode)
+ * This is interpreted as a "state delta" to be applied to termStates as defined below.
+ *)
+type style = attribute list
+
+(* A device token is a string, perhaps including UTF-8 code sequences that can be interpreted
+ * by the terminal. *)
+type token = string
+
+(********* internal types *********)
 
 (* type termState
  * This type models the ANSI terminal state with respect to the text display attributes.
@@ -53,13 +101,13 @@ type termState =
 val defaultState : termState =
     {fg = AT.Default,  (* default foreground color *)
      bg = AT.Default,  (* default background color, different from fg color *)
-     bold       = false,
-     dim        = false,
+     bold = false,
+     dim = false,
      underlined = false,
-     blinking   = false}
+     blinking = false}
 
-(* NOTE: Styles can be nested or layered, so a terminal state may be the product of "composing"
-   multiple nested styles. For instance, nesting or cascading the styles [BoldFace], [Dim],
+(* NOTE: Styles can be nested or layered, so a tate may be the product of "composing"
+   multiple styles. For instance, nesting or cascading the styles [BoldFace], [Dim],
    and [Underlined], starting from the defaultState, produce the state
 
        {fg = AT.Default, bg = AT.default,
@@ -73,7 +121,7 @@ val defaultState : termState =
  *)
 
 type commands = AT.style list
-  (* an AT.style is an attribute transition command *)
+  (* an AT.style is actually an attribute transition command *)
 
 type stateStack = termState list ref
   (* INVARIANT: this should always contain a non-empty list *)
@@ -81,9 +129,9 @@ type stateStack = termState list ref
 (******** the device type and related functions and exceptions ********)
 
 type device =
-  {outstream : TextIO.outstream, (* outstream for an ANSI terminal (emulation) *)
-   stateStack : stateStack, (* initial value = [defaultState] -- should always be nonempty*)
-   lineWidth : int} (* INVARIANT lineWidth > 0 *)
+  {outstream : TextIO.outstream,  (* outstream for an ANSI terminal (emulation) *)
+   stateStack : stateStack,   (* initial value = nil (or [defaultState]?) *)
+   lineWidth : int}  (* INVARIANT lineWidth > 0 *)
 	       
 fun clearOutstream (outstream : TextIO.outstream) =
     (TextIO.flushOut outstream;            (* clearing any buffered output *)
@@ -111,35 +159,35 @@ exception DeviceError of string
 
 (** functions tracking the device (i.e. the terminal) state and managing the state stack **)
 
-(* delta : Style.style * termState -> commands * termState
+(* delta : style * termState -> commands * termState
  * apply style to change the current terminal state (hd (!stateStack)) to new state, which
  * will be pushed onto the stateStack, plus a list of commands to set the terminal to
  * this new state *)
-fun delta (style : Style.style, {fg,bg,bold,dim,underlined,blinking} : termState) : commands * termState =
+fun delta (style : style, {fg,bg,bold,dim,underlined,blinking} : termState) : commands * termState =
     let fun foo (nil, commands, fg, bg, bold, dim, underlined, blinking) =
 	    (rev commands,
 	     {fg = fg, bg = bg, bold = bold, dim = dim, underlined = underlined, blinking = blinking})
-          | foo (Style.ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (ForeGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> fg
 	     then foo (rest, AT.FG c :: commands, c, bg, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Style.BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (BackGround c :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if c <> bg
 	     then foo (rest, AT.BG c :: commands, fg, c, bold, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Style.BoldFace :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (BoldFace :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not bold
 	     then foo (rest, AT.BF :: commands, fg, bg, true, dim, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Style.Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Dim :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not dim
 	     then foo (rest, AT.DIM :: commands, fg, bg, bold, true, underlined, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Style.Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Underlined :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not underlined
 	     then foo (rest, AT.UL :: commands, fg, bg, bold, dim, true, blinking)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
-          | foo (Style.Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
+          | foo (Blinking :: rest, commands, fg, bg, bold, dim, underlined, blinking) = 
 	     if not blinking
 	     then foo (rest, AT.BLINK :: commands, fg, bg, bold, dim, underlined, true)
 	     else foo (rest, commands, fg, bg, bold, dim, underlined, blinking)
