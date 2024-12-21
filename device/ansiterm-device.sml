@@ -6,9 +6,9 @@
  * attributes themselves, that is, any styles needed for the PPDevice version are
  * defined in terms of ANSITerm.style values, which are attribute-setting commands. *)
 
-(* note that the structure ANSITERM_Device is not constrained here by the DEVICE signature.
- * This is because we need to have access to the attribute type in order to define ANSIterm
- * "styles" when defining stylemap functions. *)
+(* Note that the structure ANSITERMDevice is constrained here by a modified DEVICE signature.
+ * The (raw) ANSITermStyle structure is needed to provide the attribute type in order to define
+ * ANSIterm "styles" for stylemap functions that need to be passed to the renderer function. *)
 
 structure ANSITermDevice : DEVICIE where structure Style = ANSITermStyle
 struct
@@ -214,5 +214,5 @@ fun 'r withStyle (device: device, style: style, renderThunk : unit -> 'r) : 'r =
        before restoreState device)
 
 end (* top local *)
-end (* structure ANSITerm_Device *)
+end (* structure ANSITermDevice *)
 

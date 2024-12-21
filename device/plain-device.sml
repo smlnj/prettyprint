@@ -2,7 +2,7 @@
 
 (* Version 11 (see device-notes.txt) *)
 
-(* The Plain_Device structure implements the class of plain text (default) devices.
+(* The PlainDevice structure implements the class of plain text (default) devices.
  * Devices in this class can differ in terms of their outstream and their line width.
  *
  * This structure may be redundant. It may be possible to replace it with the equivalent(?)
@@ -65,4 +65,4 @@ fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 fun 'r withStyle (device: device, style: style, thunk : unit -> 'r) : 'r =
      thunk ()
 
-end (* structure Plain_Device : DEVICE *)
+end (* structure PlainDevice : DEVICE *)

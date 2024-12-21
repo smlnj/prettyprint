@@ -8,8 +8,8 @@ use by the rendering phase of a pretty printer. A device defines a line length f
 output device. It can also support device specific "styles" for highlighting text and
 device specific "tokens" or special symbols (typically Unicode symbols).
 
-Initially there are just two specific devices definded. Plain_Device for printing to
-plain (i.e., ASCII) text, and ANSITerm_Device for printing to an ANSII terminal (emulator)
+Initially there are just two specific devices definded. PlainDevice for printing to
+plain (i.e., ASCII) text, and ANSITermDevice for printing to an ANSII terminal (emulator)
 that support certain text highlighting modes and that can render at least some Unicode
 glyphs. The (DBM_PP) prettyprint library
 
@@ -22,8 +22,8 @@ Formats
 - 
 
 - device/device.sig  (-> DEVICE)
-- device/plain-device.sml  (-> Plain_Device)
-- device/ansiterm-device.sml (-> ANSITerm_Device : DEVICE)
+- device/plain-device.sml  (-> PlainDevice)
+- device/ansiterm-device.sml (-> ANSITermDevice : DEVICE)
 
 
 ## The general model
@@ -44,7 +44,7 @@ functions used to interpret logical styles and tokens that can be included in a 
 ## The ANSI terminal device
 
 The main idea is that a logical style will map to a device or "physical" style for an ANSI
-terminal (ANSITerm_Device.style). "Applying" a style to a terminal outstream causes
+terminal (ANSITermDevice.style). "Applying" a style to a terminal outstream causes
 corresponding attributes of the terminal device to be set, producing a new device state.
 This new state is recorded internally on a device state stack.
 

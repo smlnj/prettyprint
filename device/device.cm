@@ -4,16 +4,17 @@
 Library
 
   signature DEVICE
-  structure ANSITerm_Device
-  structure Plain_Device 
+  structure ANSITermDevice
+  structure PlainDevice 
 
 is
 
 (* member source files *)
 
 device.sig          (* <- signature DEVICE *)
-plain-device.sml    (* <- structure Plain_Device *)
-ansiterm-device.sml (* <- structure ANSITerm_Device for ANSI terminals *)
+plain-device.sml    (* <- structure PlainDevice *)
+ansiterm-style.sml  (* <- ANSITermStyle *)
+ansiterm-device.sml (* <- structure ANSITermDevice for ANSI terminals *)
 
 (* imports *)
 

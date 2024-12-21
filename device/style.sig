@@ -21,7 +21,7 @@ sig
    (* (1) The members of this type are meant to contain (possibly) device-dependent
     *     encodings of "logical" tokens.
     *     For instance, a logical token might be ("lambda",1), which would map, via a
-    *     tokenmap function, to a device token (defined in, say, ANSITerm_Device) that
+    *     tokenmap function, to a device token (defined in, say, ANSITermDevice) that
     *     is a unicode encoding of the greek lambda character (e.g., as an UTF-8 encoded
     *     ascii string).
     * (2) if the token type is defined in a device, how can tokens appear in formats?
