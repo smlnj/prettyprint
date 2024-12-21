@@ -6,6 +6,12 @@
  *   DEVICE signature.
  *)
 
+signature STYLE =
+sig
+  type style
+  type token	     
+end (* signature STYLE *)
+
 signature DEVICE =
 sig
 
@@ -54,7 +60,7 @@ sig
   val string : device -> string -> unit
   (* output a string in the device's current style to the device *)
 
-  val token : device -> token -> unit
+  val token : device -> Style.token -> unit
   (* output a device token (i.e. a "physical" token), which is normally obtained by
    * applying a tokenmap to a logical token (Token.token), and is assumed to have the
    * "physical" size (in characters) associated with that logical token. *)
@@ -62,7 +68,7 @@ sig
   val flush : device -> unit
   (* if the device's output stream is buffered, then flush any buffered output *)
 
-  val withStyle : device * style * (unit -> 'r)  -> 'r
+  val withStyle : device * Style.style * (unit -> 'r)  -> 'r
   (* execute a function, assumed to be a rendering function thunk, with the
    * device style set as specified. 
    * potentially raises DeviceError

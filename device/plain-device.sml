@@ -54,7 +54,7 @@ fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
 (* token : device -> token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: token) = ()
+fun token ({outstream,...}: device) (t: Style.token) = ()
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)
@@ -62,7 +62,7 @@ fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 
 (* withStyle : [All 'r] device * style * (unit -> 'r) -> 'r *)
 (* When called withing the renderer, 'r instantiates to renderState *)
-fun 'r withStyle (device: device, style: style, thunk : unit -> 'r) : 'r =
+fun 'r withStyle (device: device, style: Style.style, thunk : unit -> 'r) : 'r =
      thunk ()
 
 end (* structure PlainDevice : DEVICE *)

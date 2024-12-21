@@ -10,7 +10,7 @@
  * The (raw) ANSITermStyle structure is needed to provide the attribute type in order to define
  * ANSIterm "styles" for stylemap functions that need to be passed to the renderer function. *)
 
-structure ANSITermDevice : DEVICIE where structure Style = ANSITermStyle
+structure ANSITermDevice : DEVICE where Style = ANSITermStyle  =
 struct
 
 local (* imported structures *)
@@ -147,7 +147,7 @@ fun delta (style : Style.style, {fg,bg,bold,dim,underlined,blinking} : termState
     end
 	
 (* pushState : device -> style -> unit *)
-fun pushState ({outstream, stateStack, ...} : device) (style : style) : unit =
+fun pushState ({outstream, stateStack, ...} : device) (style : Style.style) : unit =
     let val (commands, newState) =
 	    (case !stateStack
 	      of nil => raise DeviceError "pushState"
@@ -199,7 +199,7 @@ fun string ({outstream,...}: device) (s: string) = TextIO.output (outstream, s)
 
 (* token : device -> token -> unit *)
 (* output a string/character in the current style to the device *)
-fun token ({outstream,...}: device) (t: token) = TextIO.output (outstream, t)
+fun token ({outstream,...}: device) (t: Style.token) = TextIO.output (outstream, t)
 
 (* flush : device -> unit *)
 (* if the device is buffered, then flush any buffered output *)
@@ -208,7 +208,7 @@ fun flush ({outstream,...}: device) = TextIO.flushOut outstream
 (* withStyle : device * style * (unit -> 'r) -> 'r *)
 (* formerly named "renderStyled" *)
 (* When called within the renderer, 'r instantiates to local renderState type *)
-fun 'r withStyle (device: device, style: style, renderThunk : unit -> 'r) : 'r =
+fun 'r withStyle (device: device, style: Style.style, renderThunk : unit -> 'r) : 'r =
     (pushState device style;
      renderThunk ()
        before restoreState device)
